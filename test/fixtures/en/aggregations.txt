@@ -1,0 +1,40 @@
+This is a URL: https://example.com. http://example.com is the same URL only it lacks the security of the former URL, sending only plain text messages, without encrypting the data.
+
+The URL: https://user:password@www.example.com:1234/foo/bar.html?enc=utf8#main is a URL that includes all parts a URL can include.
+
+Do we want to also support URLs that do not start with a protocol? Taking one of the examples above, some examples of this are: example.com:1234/foo/bar.html?enc=utf8#main and example.com/foo/bar.
+
+This is an email address: tendrill.muigui@library.example.co.uk. This is also a valid email address: tendrill.muigui+extra-information@library.example.co.uk, both addresses will be sent to the same person's email.
+
+This is a username: @constantology. @constantology is my username. It is a play on my surname Constandinou, replacing the "dinou" with "tology".
+
+This is a hashtag: #muigui. #muigui is not a real hashtag. It could be, but #muigui is only being used as an example, in this particular instance. #hash_tags can also include #underscores_but_not_spaces or #hyphens of any kind.
+
+This is a card number: 4242424242424242 for Visa, it has no spaces.
+This is the same card number: 4242 4242 4242 4242, but with spaces separating each group of 4 digits. This sentence will end with the card number: 4242 4242 4242 4242.
+
+This is a card number: 5555555555554444 for Mastercard, it has no spaces.
+This is the same card number: 5555 5555 5555 4444, but with spaces separating each group of 4 digits. This sentence will end with the card number: 5555 5555 5555 4444.
+
+This is another card number: 1234567890987654 that I just made up, it has no spaces.
+This is the same card number: 1234 5678 9098 7654, but with spaces separating each group of 4 digits. This sentence will end with the card number: 1234 5678 9098 7654.
+
+This is an Australian landline number: +61 (02) 9481 1111, which is actually for ordering Pizza Hut delivery. I remember it because the commercials forcefully carved it into my neocortex. It can also be written as 00610294811111.
+
+This is an Australian mobile number: +61 (0) 412 345 678, which I just made up. It can also be written as 00610412345678.
+
+This is an UK landline number: +44 (0) 20 7123 4567, which is actually from a google search result. It can also be written as 004402071234567.
+
+This is an UK mobile number: +44 (0) 7890 123 456, which I just made up. It can also be written as 004407890123456.
+
+This is an ftp URL: ftp://files.example.com/downloads/archive.zip, which uses the file transfer protocol rather than http.
+
+A URL can appear in parentheses (https://example.com/docs) or be followed by punctuation, like https://example.com/path, and should be detected without the surrounding characters.
+
+This is a simple email address: someone@example.com, with no dots or plus signs in the local part.
+
+This is another username: @someone_else, which includes an underscore, just like a hashtag can.
+
+These could be american numbers: 555-666-7777, 01-555-666-7777, or +1 555-666-7777.
+
+This URL is even longer: https://user:password@www.example.com:1234/foo/bar.html?enc=utf8&items=foo&items=bar&values[]=foo&values[]=bar&list=foo,bar#main/fold/above.

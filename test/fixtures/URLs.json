@@ -1,0 +1,55 @@
+[ {
+  "lang": "de",
+  "lineSeparator": "CRLF",
+  "title": "Hamlet",
+  "url": "https://www.gutenberg.org/cache/epub/7276/pg7276.txt"
+}, {
+  "lang": "de",
+  "title": "Macbeth",
+  "url": "https://www.gutenberg.org/cache/epub/6975/pg6975.txt"
+}, {
+  "lang": "es",
+  "title": "Dramas de Guillermo",
+  "url": "https://www.gutenberg.org/cache/epub/53207/pg53207.txt"
+}, {
+  "lang": "es",
+  "lineSeparator": "CRLF",
+  "title": "Hamlet",
+  "url": "https://www.gutenberg.org/cache/epub/56454/pg56454.txt"
+}, {
+  "lang": "fr",
+  "lineSeparator": "CRLF",
+  "title": "Hamlet",
+  "url": "https://www.gutenberg.org/cache/epub/15032/pg15032.txt"
+}, {
+  "lang": "fr",
+  "title": "Macbeth",
+  "url": "https://www.gutenberg.org/cache/epub/13868/pg13868.txt"
+}, {
+  "lang": "it",
+  "title": "Il libro di Sidrach",
+  "url": "https://www.gutenberg.org/cache/epub/44549/pg44549.txt"
+}, {
+  "lang": "it",
+  "lineSeparator": "CRLF",
+  "title": "La Tempesta",
+  "url": "https://www.gutenberg.org/cache/epub/26169/pg26169.txt"
+}, {
+  "lang": "nl",
+  "lineSeparator": "CRLF",
+  "title": "The Comedy of Errors",
+  "url": "https://www.gutenberg.org/cache/epub/25843/pg25843.txt"
+}, {
+  "lang": "nl",
+  "title": "The Taming of the Shrew",
+  "url": "https://www.gutenberg.org/cache/epub/51691/pg51691.txt"
+}, {
+  "lang": "pt",
+  "lineSeparator": "CRLF",
+  "title": "Hamlet",
+  "url": "https://www.gutenberg.org/cache/epub/25667/pg25667.txt"
+}, {
+  "lang": "pt",
+  "title": "Othello",
+  "url": "https://www.gutenberg.org/cache/epub/28526/pg28526.txt"
+} ]
