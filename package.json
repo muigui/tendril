@@ -1,0 +1,85 @@
+{
+  "name": "@muigui/tendril",
+  "author": "Christos Constandinou <christos@muigui.com> (https://github.com/constantology)",
+  "description": "muigui | Tendril",
+  "license": "Apache-2.0",
+  "maintainers": [ {
+    "email": "christos@muigui.com",
+    "name": "Christos Constandinou",
+    "url": "https://github.com/constantology"
+  } ],
+  "type": "module",
+  "version": "0.0.0",
+
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./i18n": {
+      "default": "./dist/lib/i18n/index.js",
+      "types": "./dist/lib/i18n/index.d.ts"
+    },
+    "./lang": {
+      "default": "./dist/lib/i18n/index.js",
+      "types": "./dist/lib/i18n/index.d.ts"
+    },
+    "./types": {
+      "default": "./dist/types.js",
+      "types": "./dist/types.d.ts"
+    }
+  },
+
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf coverage dist node_modules tsconfig.tsbuildinfo",
+    "lint": "eslint --config eslint.config.js --report-unused-disable-directives ./src",
+    "lint:fix": "lint-staged --verbose",
+    "lint:fix:all": "npm run lint -- --fix",
+    "postbuild": "rm -rf tsconfig.tsbuildinfo",
+    "pretest": "rm -rf coverage && mkdir -p coverage",
+    "pretest:agg": "rm -rf coverage && mkdir -p coverage",
+    "test": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout {src,test}/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}",
+    "test:agg": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout test/unit/aggregate.test.ts"
+  },
+
+  "dependencies": {
+    "@hapi/address": "^5.1.1",
+    "libphonenumber-js": "^1.0.9"
+  },
+
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@muigui/code-style": "^1.0.0",
+    "@types/node": "^24.12.4",
+    "@types/shelljs": "^0.10.0",
+    "conventional-changelog-cli": "^5.0.0",
+    "conventional-changelog-eslint": "^6.1.0",
+    "conventional-recommended-bump": "^11.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
+    "npm-check-updates": "^20.0.0",
+    "shelljs": "^0.10.0",
+    "typescript": "^6.0.3"
+  },
+
+  "engines": {
+    "node": ">=24.13.1",
+    "npm": ">=11.8.0"
+  },
+  "packageManager": "npm@11.8.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/muigui/tendril.git"
+  },
+
+  "lint-staged": {
+    "./src/**/*.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}": "eslint --config eslint.config.js --fix --report-unused-disable-directives"
+  }
+}
