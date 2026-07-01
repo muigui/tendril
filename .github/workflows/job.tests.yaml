@@ -1,0 +1,86 @@
+name: job-tests
+run-name: Tests
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        description: |
+          The name of the branch this job is running on.
+          This value is resolved in the `env` job.
+        required: true
+        type: string
+      build_cache_key:
+        description: |
+          The full cache key of the cached build artifacts.
+          This value is resolved in the `build` job.
+        required: true
+        type: string
+      build_path:
+        description: |
+          The list of build path globs to cache.
+          This value is resolved in the `build` job.
+        required: true
+        type: string
+      deps_cache_key:
+        description: |
+          The full cache key of the cached dependencies.
+          This value is resolved in the `install` job.
+        required: true
+        type: string
+      deps_path:
+        description: |
+          The list of dependency path globs to cache.
+          This value is resolved in the `install` job.
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: read
+#  deployments: write
+  id-token: write
+  packages: read
+#  pull-requests: write
+#  statuses: write
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: false
+
+      - name: Set Node.JS 24.x
+        uses: actions/setup-node@v4
+        with:
+          check-latest: true
+          node-version: 24.x
+
+      - id: cached-deps
+        name: Restore cached dependencies
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ inputs.deps_cache_key }}
+          path: ${{ inputs.deps_path }}
+
+      - id: cached-dist
+        name: Restore cached build artifacts
+        env:
+          cache_name: cache-dist
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ inputs.build_cache_key }}
+          path: ${{ inputs.build_path }}
+
+      - name: Run unit tests
+        env:
+          BRANCH_NAME: ${{ inputs.branch_name }}
+          NODE_OPTIONS: --max_old_space_size=16384
+        run: |
+          npm test

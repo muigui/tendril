@@ -1,0 +1,107 @@
+name: main
+run-name: origin/main
+
+concurrency:
+  #  cancel-in-progress: ${{ github.event_name == 'push' }}
+  cancel-in-progress: true
+  group: ${{ github.ref }}-${{ github.workflow }}-${{ github.actor }}
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/**.yaml'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  #  deployments: write
+  id-token: write
+  packages: write
+#  pull-requests: write
+#  statuses: write
+
+jobs:
+  resolve-env:
+    name: Environment
+    uses: ./.github/workflows/job.env.yaml
+
+  # This needs to be done here, at the top-level, where we have access to the `secrets` and `vars` contexts.
+  secrets-vars:
+    name: Get environment specific secrets and variables
+    needs:
+      - resolve-env
+    runs-on: ubuntu-latest
+
+    outputs:
+      is_main: ${{ steps.is-main.outputs.is_main }}
+
+    steps:
+      - id: is-main
+        name: Output is_main
+        run: |
+          echo "is_main=true" >> ${GITHUB_OUTPUT}
+
+  install:
+    name: Dependencies
+    uses: ./.github/workflows/job.install.yaml
+    with:
+      path: ${{ vars.PATH_DEPENDENCIES }}
+
+  build:
+    name: Codebase
+    needs:
+      - install
+    uses: ./.github/workflows/job.build.yaml
+    with:
+      deps_cache_key: ${{ needs.install.outputs.cache_key }}
+      deps_path: ${{ vars.PATH_DEPENDENCIES }}
+      path: ${{ vars.PATH_DIST }}
+
+  lint:
+    name: Linting
+    needs:
+      - build
+      - install
+      - resolve-env
+    uses: ./.github/workflows/job.lint.yaml
+    with:
+      branch_name: ${{ needs.resolve-env.outputs.branch_name }}
+      build_cache_key: ${{ needs.build.outputs.cache_key }}
+      build_path: ${{ vars.PATH_DIST }}
+      deps_cache_key: ${{ needs.install.outputs.cache_key }}
+      deps_path: ${{ vars.PATH_DEPENDENCIES }}
+
+  tests:
+    name: Tests
+    needs:
+      - build
+      - install
+      - resolve-env
+    uses: ./.github/workflows/job.tests.yaml
+    with:
+      branch_name: ${{ needs.resolve-env.outputs.branch_name }}
+      build_cache_key: ${{ needs.build.outputs.cache_key }}
+      build_path: ${{ vars.PATH_DIST }}
+      deps_cache_key: ${{ needs.install.outputs.cache_key }}
+      deps_path: ${{ vars.PATH_DEPENDENCIES }}
+
+  release:
+    name: Release
+    needs:
+      - build
+      - install
+      - resolve-env
+      - secrets-vars
+      - tests
+    uses: ./.github/workflows/job.release.yaml
+    with:
+      branch_name: ${{ needs.resolve-env.outputs.branch_name }}
+      build_cache_key: ${{ needs.build.outputs.cache_key }}
+      build_path: ${{ vars.PATH_DIST }}
+      deps_cache_key: ${{ needs.install.outputs.cache_key }}
+      deps_path: ${{ vars.PATH_DEPENDENCIES }}
+      is_main: ${{ needs.secrets-vars.outputs.is_main }}

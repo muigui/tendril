@@ -1,0 +1,110 @@
+name: job-build-and-cache
+run-name: Build and cache
+
+on:
+  workflow_call:
+    inputs:
+      deps_cache_key:
+        description: |
+          The full cache key of the cached dependencies.
+          This value is resolved in the `install` job.
+        required: true
+        type: string
+      deps_path:
+        description: |
+          The list of dependency path globs to cache.
+          This value is resolved in the `install` job.
+        required: true
+        type: string
+      path:
+        description: The list of build path globs to cache
+        required: true
+        type: string
+    outputs:
+      cache_hash:
+        description: The SHA-256 hash part of the cache key
+        value: ${{ jobs.codebase.outputs.cache_hash }}
+      cache_hit:
+        description: Whether or not the cache was hit
+        value: ${{ jobs.codebase.outputs.cache_hit }}
+      cache_key:
+        description: The full cache key used to restore/save the cache
+        value: ${{ jobs.codebase.outputs.cache_key }}
+
+jobs:
+  codebase:
+    name: Build and cache
+    runs-on: ubuntu-latest
+
+    outputs:
+      cache_hit: ${{ steps.cache-hit.outputs.cache_hit }}
+      cache_hash: ${{ steps.cache-hash.outputs.cache_hash }}
+      cache_key: ${{ steps.cache-key.outputs.cache_key }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          fetch-tags: false
+
+      - name: Set Node.JS 24.x
+        uses: actions/setup-node@v4
+        with:
+          check-latest: true
+          node-version: 24.x
+
+      - id: cached-deps
+        name: Restore cached dependencies
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ inputs.deps_cache_key }}
+          path: ${{ inputs.deps_path }}
+
+      - id: cache-hash
+        name: Resolve the SHA-256 hash part of the cache key
+        run: |
+          echo "cache_hash=${{ hashFiles('src/*.ts', 'src/**/*.ts') }}" >> ${GITHUB_OUTPUT}
+
+      - id: cache-dist-restore
+        name: Restore cached build artifacts
+        env:
+          cache_name: cache-dist
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ env.cache_name }}-${{ runner.os }}-${{ steps.cache-hash.outputs.cache_hash }}
+          path: ${{ inputs.path }}
+          restore-keys: |
+            ${{ env.cache_name }}-${{ runner.os }}-
+            ${{ env.cache_name }}-
+
+      - id: cache-hit
+        name: Output cache hit/miss
+        run: |
+          echo "cache_hit=${{ (steps.cache-dist-restore.outputs.cache-hit == 'true') && 'true' || 'false' }}" >> ${GITHUB_OUTPUT}
+
+      - id: cache-key
+        env:
+          cache_name: cache-dist
+        name: Output cache key
+        run: |
+          if [[ "${{ steps.cache-hit.outputs.cache_hit }}" == 'true' ]]; then
+            echo "cache_key=${{ steps.cache-dist-restore.outputs.cache-matched-key }}" >> ${GITHUB_OUTPUT}
+          else
+            echo "cache_key=${{ env.cache_name }}-${{ runner.os }}-${{ steps.cache-hash.outputs.cache_hash }}" >> ${GITHUB_OUTPUT}
+          fi
+
+      - name: Build
+        if: steps.cache-hit.outputs.cache_hit != 'true'
+        run: |
+          npm run build
+
+      - id: cache-dist-save
+        name: Cache build artifacts
+        env:
+          cache_name: cache-dist
+        if: always() && steps.cache-hit.outputs.cache_hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ env.cache_name }}-${{ runner.os }}-${{ steps.cache-hash.outputs.cache_hash }}
+          path: ${{ inputs.path }}

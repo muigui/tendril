@@ -1,0 +1,103 @@
+name: job-release
+run-name: Release
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        description: |
+          The name of the branch this job is running on.
+          This value is resolved in the `env` job.
+        required: true
+        type: string
+      build_cache_key:
+        description: |
+          The full cache key of the cached build artifacts.
+          This value is resolved in the `build` job.
+        required: true
+        type: string
+      build_path:
+        description: |
+          The list of build path globs to cache.
+          This value is resolved in the `build` job.
+        required: true
+        type: string
+      deps_cache_key:
+        description: |
+          The full cache key of the cached dependencies.
+          This value is resolved in the `install` job.
+        required: true
+        type: string
+      deps_path:
+        description: |
+          The list of dependency path globs to cache.
+          This value is resolved in the `install` job.
+        required: true
+        type: string
+      is_main:
+        description: |
+          Whether the branch this workflow is running on, is `origin/main`.
+          This value is hard-set in each top-level workflow's `secrets-values` job.
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: write
+#  deployments: write
+  id-token: write
+  packages: write
+#  pull-requests: write
+#  statuses: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: false
+
+      - name: Set Node.JS 24.x
+        uses: actions/setup-node@v4
+        with:
+          check-latest: true
+          node-version: 24.x
+          # Needed so `npm publish` targets the right registry under OIDC.
+          registry-url: 'https://registry.npmjs.org'
+
+      - id: cached-deps
+        name: Restore cached dependencies
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ inputs.deps_cache_key }}
+          path: ${{ inputs.deps_path }}
+
+      - id: cached-dist
+        name: Restore cached build artifacts
+        env:
+          cache_name: cache-dist
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ inputs.build_cache_key }}
+          path: ${{ inputs.build_path }}
+
+      - id: release-please
+        name: Release Please
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - id: npm-publish
+        # Only when a release was just cut, and only on main.
+        if: ${{ steps.release-please.outputs.release_created == 'true' && github.ref == 'refs/heads/main' }}
+        name: NPM Publish
+        # No NODE_AUTH_TOKEN: auth is via OIDC trusted publishing.
+        # Provenance is generated automatically (repo is public).
+        run: |
+          npm publish
