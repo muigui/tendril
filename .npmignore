@@ -1,0 +1,14 @@
+.github
+.npmrc
+.nvmrc
+
+.release-please-*.json
+release-please-*.json
+
+tsconfig.tsbuildinfo
+
+coverage
+test
+
+src/**/*.test.mts
+src/**/*.test.ts

@@ -1,0 +1,69 @@
+# Logs
+*.log
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+*.pid
+*.pid.lock
+*.seed
+pids
+
+# TSC artifact directory
+build
+dist
+tsconfig.tsbuildinfo
+
+# Directory for instrumented libs, code coverage, etc...
+.nyc_output
+coverage
+lib-cov
+
+# nodes-waf configuration
+.lock-wscript
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Husky's GIT hooks directory
+.husky/*
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dir attributes file
+.DS_Store
+.idea
+.vscode
+
+# Ignore folders with the following names
+*-bak*
+*-ignore*
+
+# Ignore files with the following names
+*.bak*
+*.ignore*
+*ignore.*
+*scratch*
+
+.cache
+
+.env
+
+*.ai-updates*
+
+test/fixtures/ast
