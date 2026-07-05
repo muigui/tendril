@@ -211,7 +211,6 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     this.#temp += `${text}${originalLineSeparator}`;
 
     if (this.isLoadableChunk(this.#temp)) {
-      // state.loadChunk(this.#temp.replaceAll(originalLineSeparator, lineSeparator));
       state.loadChunk(originalLineSeparator !== lineSeparator
         ? this.#temp.replaceAll(originalLineSeparator, lineSeparator)
         : this.#temp);
@@ -425,8 +424,4 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
       await lineParser.parseContext(line, state);
     }
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilParser(Stream)`;
-  // }
 }

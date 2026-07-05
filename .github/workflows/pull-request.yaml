@@ -61,6 +61,7 @@ jobs:
 
   lint:
     name: Linting
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     needs:
       - build
       - install
@@ -75,6 +76,7 @@ jobs:
 
   tests:
     name: Tests
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     needs:
       - build
       - install

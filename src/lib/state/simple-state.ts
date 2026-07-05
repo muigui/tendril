@@ -54,8 +54,4 @@ export class SimpleState extends BaseState {
 
     this.pushCtx(ctx);
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilState(Simple)`;
-  // }
 }

@@ -52,7 +52,6 @@ export class LineParser extends ContextParser<LineContext> {
       lang: {
         lineSeparator,
       },
-      // originalLineSeparator,
     } = state;
 
     // The `SpanNode`'s instance method: `end(value: string)` is created by cloning its opening counterpart.
@@ -89,7 +88,6 @@ export class LineParser extends ContextParser<LineContext> {
         dir,
         id: lang,
       },
-      // originalLineSeparator,
     } = state;
 
     ctx.openSpan(ParagraphNode.new({
@@ -103,7 +101,6 @@ export class LineParser extends ContextParser<LineContext> {
       value: state.isStartOfDocument
         ? ``
         : undefined,
-      // : originalLineSeparator,
     }));
   }
 
@@ -120,8 +117,4 @@ export class LineParser extends ContextParser<LineContext> {
       await segmentsParser.parseContext(segments, state);
     }
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilParser(Line)`;
-  // }
 }

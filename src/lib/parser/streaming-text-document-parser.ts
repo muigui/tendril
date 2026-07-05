@@ -253,8 +253,4 @@ export class StreamingTextDocumentParser extends StreamParser {
 
     return this.end();
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilParser(StreamingTextDocument)`;
-  // }
 }

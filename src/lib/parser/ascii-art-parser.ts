@@ -79,8 +79,4 @@ export class ASCIIArtParser extends StringParser {
       }),
     };
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilParser(ASCIIArt)`;
-  // }
 }

@@ -63,9 +63,13 @@ jobs:
 
   lint:
     name: Linting
+    # Skip on release-please's release commit — there's nothing to lint in an
+    # auto-generated version bump + CHANGELOG.
+    if: ${{ needs.release.outputs.release_created != 'true' }}
     needs:
       - build
       - install
+      - release
       - resolve-env
     uses: ./.github/workflows/job.lint.yaml
     with:
@@ -77,9 +81,13 @@ jobs:
 
   tests:
     name: Tests
+    # Skip on release-please's release commit — the version bump + CHANGELOG
+    # carry no code changes to test.
+    if: ${{ needs.release.outputs.release_created != 'true' }}
     needs:
       - build
       - install
+      - release
       - resolve-env
     uses: ./.github/workflows/job.tests.yaml
     with:
@@ -91,12 +99,13 @@ jobs:
 
   release:
     name: Release
+    # Runs first now (lint/tests depend on its `release_created` output), so it
+    # no longer waits on `tests`.
     needs:
       - build
       - install
       - resolve-env
       - secrets-vars
-      - tests
     uses: ./.github/workflows/job.release.yaml
     with:
       branch_name: ${{ needs.resolve-env.outputs.branch_name }}

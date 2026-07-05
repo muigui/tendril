@@ -408,8 +408,4 @@ export class ASTContext extends IteratorContext<Segments[], LineContext> {
 
     this.line = undefined;
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilContext(AST)`;
-  // }
 }
