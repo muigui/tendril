@@ -14,13 +14,35 @@ import {
   ContextParser,
 } from './context-parser.ts';
 
+/** Configuration for a {@link LineParser}. */
 export interface LineParserConfig extends ContextParserConfig { }
 
+/**
+ * Line-level parser: wraps each line in a {@link ParagraphNode} span and
+ *   delegates its sentences to the segments parser.
+ *
+ * It also fixes up line-break values at the document edges — the first paragraph
+ *   opens without a leading break and the last closes without a trailing one — so
+ *   the rendered AST doesn't gain or lose blank lines relative to the source.
+ */
 export class LineParser extends ContextParser<LineContext> {
+  /**
+   * Factory for a {@link LineParser}.
+   *
+   * @param config - Parser configuration.
+   * @returns A new {@link LineParser} instance.
+   */
   static new(config: LineParserConfig) {
     return new LineParser(config);
   }
 
+  /**
+   * Closes the paragraph span, adjusting its end value at the first/last line so
+   *   the document keeps exactly the right number of line breaks.
+   *
+   * @param line - The line's context.
+   * @param state - The shared parser state.
+   */
   protected async afterParse(line: LineContext, state: BaseState) {
     const {
       ctx,
@@ -51,6 +73,13 @@ export class LineParser extends ContextParser<LineContext> {
     await super.afterParse(line, state);
   }
 
+  /**
+   * Opens a new {@link ParagraphNode} span for the line, suppressing the leading
+   *   line break when it is the document's first line.
+   *
+   * @param line - The line's context.
+   * @param state - The shared parser state.
+   */
   protected async beforeParse(line: LineContext, state: BaseState) {
     await super.beforeParse(line, state);
 
@@ -78,6 +107,12 @@ export class LineParser extends ContextParser<LineContext> {
     }));
   }
 
+  /**
+   * Iterates the line's sentences, delegating each to the `segments` parser.
+   *
+   * @param line - The line's context.
+   * @param state - The shared parser state.
+   */
   protected async onParse(line: LineContext, state: BaseState) {
     const segmentsParser = state.getParser(`segments`);
 

@@ -6,8 +6,16 @@ import './lang/index.ts';
 
 export * from './available-languages.ts';
 export * from './configure-language.ts';
+
+/**
+ * Default implementations of the {@link Language} helper functions, used by
+ *   {@link configureLanguage} unless a language overrides them.
+ */
 export * as LANG_DEFAULTS from './language-defaults.ts';
+
+/** Helpers for wrapping {@link Intl.Segmenter} into Tendril's segmenter functions. */
 export * as Segmenter from './segmenter.ts';
+
 export * from './types.ts';
 
 /**

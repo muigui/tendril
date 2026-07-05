@@ -9,8 +9,12 @@ import PHONE_NUMBER_DETECTOR from './phone-number.ts';
 import URL_DETECTOR from './url.ts';
 import USERNAME_DETECTOR from './username.ts';
 
-// Ordered registry. Index order also encodes priority (URL highest), but each
-//   detector carries an explicit `priority` so callers never depend on order.
+/**
+ * Ordered registry of every built-in {@link AggregationDetector}.
+ *
+ * Index order also encodes priority (URL highest), but each detector carries an
+ *   explicit `priority` so callers never depend on the array order.
+ */
 export const DETECTORS: AggregationDetector[] = [
   URL_DETECTOR,
   EMAIL_ADDRESS_DETECTOR,

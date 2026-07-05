@@ -15,6 +15,12 @@ import {
 //   absorbed mid-word — notably the "@" inside an email, or a "C#".
 const HASHTAG_PATTERN = /(?<![\w#])#\w+/gu;
 
+/**
+ * Detects hashtags: a `#` followed by word characters, with a lookbehind that
+ *   prevents matching mid-word (e.g. the `#` in `C#`).
+ *
+ * @see {@link AggregationDetector}
+ */
 export default {
   category: TOKEN_AGGREGATION_NODE_CATEGORY.HASHTAG,
   priority: 300,

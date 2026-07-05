@@ -16,6 +16,12 @@ import type {
 //   `isEmailValid` is the authority on whether a candidate is actually valid.
 const EMAIL_PATTERN = /[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+/gu;
 
+/**
+ * Detects email addresses: a permissive candidate pattern (whose domain must
+ *   contain a dot) confirmed by `@hapi/address`'s `isEmailValid`.
+ *
+ * @see {@link AggregationDetector}
+ */
 export default {
   category: TOKEN_AGGREGATION_NODE_CATEGORY.EMAIL,
   priority: 100,

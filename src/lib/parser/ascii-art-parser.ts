@@ -18,7 +18,21 @@ import {
   StringParser,
 } from './string-parser.ts';
 
+/**
+ * A parser tuned for ASCII art rather than prose.
+ *
+ * A {@link StringParser} that swaps in the {@link ASCIISegmentParser} so segments
+ *   are treated as literal characters (no quote handling), preserving the exact
+ *   whitespace and punctuation that make up the artwork.
+ */
 export class ASCIIArtParser extends StringParser {
+  /**
+   * Factory for an {@link ASCIIArtParser}.
+   *
+   * @param lang - Language code used to resolve segmentation rules (e.g. `'en'`).
+   * @param originalLineSeparator - The source text's line separator (defaults to `LF`).
+   * @returns A new {@link ASCIIArtParser} instance.
+   */
   static new(lang: string, originalLineSeparator: ENUM_LINE_SEPARATOR = LINE_SEPARATOR.LF) {
     return new ASCIIArtParser({
       lang: getLangData(lang),
@@ -26,6 +40,13 @@ export class ASCIIArtParser extends StringParser {
     });
   }
 
+  /**
+   * Returns the parsed AST, repairing the final paragraph's line separator for
+   *   the single-paragraph case (where it would otherwise be left empty).
+   *
+   * @param state - The completed parse state.
+   * @returns The parsed {@link ASTNode}.
+   */
   getASTNode(state: SimpleState) {
     const ast = super.getASTNode(state);
     const paragraph = ast.spanAt(-1, ParagraphNode);
@@ -40,6 +61,11 @@ export class ASCIIArtParser extends StringParser {
     return ast;
   }
 
+  /**
+   * Extends the base parsers with the {@link ASCIISegmentParser}.
+   *
+   * @returns The parser registry keyed by level.
+   */
   protected getParsers(): Parsers {
     const {
       lang,
