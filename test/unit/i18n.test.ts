@@ -5,6 +5,9 @@ import {
 //   writeFile,
 // } from 'node:fs/promises';
 import {
+  env,
+} from 'node:process';
+import {
   suite,
   test,
 } from 'node:test';
@@ -23,9 +26,12 @@ import {
   readFileContents,
 } from '../utils/index.ts';
 
+const isCI = env.CI === `true`;
 const URLsByLineSeparator = Object.groupBy(
   URLs,
-  ({ lineSeparator = `LF` }) => lineSeparator,
+  ({ lineSeparator = `LF` }) => isCI
+    ? `LF`
+    : lineSeparator,
 );
 
 suite(`@muigui/tendril > Internationalization`, () => {
