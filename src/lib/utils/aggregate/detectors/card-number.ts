@@ -19,6 +19,13 @@ import {
 const CARD_GROUPED = /\b\d{4}(?:[ -]\d{4}){3}\b/gu;
 const CARD_CONTIGUOUS = /\b(?<!\+)(?!00)\d{13,19}\b/gu;
 
+/**
+ * Detects payment-card numbers structurally (not by Luhn/brand validity): either
+ *   four space/hyphen-separated groups of four digits, or a 13–19 digit
+ *   contiguous run that is not an international-dialing (`00…`/`+…`) run.
+ *
+ * @see {@link AggregationDetector}
+ */
 export default {
   category: TOKEN_AGGREGATION_NODE_CATEGORY.CARD_NUMBER,
   priority: 400,

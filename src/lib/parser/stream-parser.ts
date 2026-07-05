@@ -36,16 +36,33 @@ import type {
   RawTextValue,
 } from './types.ts';
 
+/** Configuration for a {@link StreamParser} (and its subclasses). */
 export interface StreamParserConfig extends ContextParserConfig {
+  /** When `true`, mismatched opening/closing quotes are still paired. */
   handleMismatchedQuotes?: boolean;
 }
 
+/**
+ * Abstract base for parsers that consume text incrementally and emit the AST as
+ *   a stream of newline-delimited nodes.
+ *
+ * Text is fed in via {@link StreamParser.parse | parse} and buffered until a
+ *   whole paragraph is available; each complete chunk is parsed against a
+ *   {@link StreamingState} and its nodes are flushed to a {@link PassThrough}
+ *   stream (and to the `onChunk` callback). A {@link DocumentNode} span is opened
+ *   at the start of the document and closed by {@link StreamParser.end | end}.
+ *   Because rendering is deferred while a quote is open, quotes that overlap
+ *   paragraph boundaries stream out correctly.
+ */
 export abstract class StreamParser extends ContextParser<ASTContext> {
   #handleMismatchedQuotes: boolean;
   #state: null | StreamingState = null;
   #stream: null | PassThrough = null;
   #temp!: string;
 
+  /**
+   * @param config - Parser configuration, including the mismatched-quote option.
+   */
   constructor(config: StreamParserConfig) {
     super(config);
 
@@ -54,22 +71,33 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     this.#handleMismatchedQuotes = config.handleMismatchedQuotes ?? false;
   }
 
+  /** The active streaming state's configuration (e.g. the `onChunk` callback). */
   get config() {
     return this.state.config;
   }
 
+  /** `true` while the parser is running and ready to accept chunks. */
   get on() {
     return this.state?.on ?? false;
   }
 
+  /** The active {@link StreamingState}, or a nullish value when not running. */
   get state() {
     return this.#state as StreamingState;
   }
 
+  /** The output stream that rendered/serialized nodes are written to. */
   get stream() {
     return this.#stream as PassThrough;
   }
 
+  /**
+   * Starts a streaming parse, creating a fresh state and output stream.
+   *
+   * @param config - Optional streaming-state overrides (e.g. `onChunk`).
+   * @returns A promise resolving to this parser (resumed and ready).
+   * @throws If the parser is already running.
+   */
   async begin(config?: Partial<ParserStateStreamingConfig>) {
     if (this.on) {
       throw new Error(`${this.constructor.name}AlreadyOnError: The parser and state are already "on" and ready to parse stream chunks.`);
@@ -82,6 +110,12 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     return this.resume();
   }
 
+  /**
+   * Finishes a streaming parse: finalizes state, flushes remaining nodes, ends
+   *   the output stream, and tears the parser down.
+   *
+   * @returns A promise resolving to this parser.
+   */
   async end() {
     const {
       lang: {
@@ -104,6 +138,10 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     return this;
   }
 
+  /**
+   * Flushes the current chunk's nodes: notifies `onChunk` and writes each node to
+   *   the output stream as a JSON line.
+   */
   flush() {
     const {
       config,
@@ -118,6 +156,15 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
       stream.write(JSON.stringify(node) + `\n`, `utf8`));
   }
 
+  /**
+   * Decides whether the buffered `chunk` is a complete, parseable unit.
+   *
+   * A chunk is loadable when the parser is not paused and either the stream is
+   *   finalizing or the chunk ends on a paragraph boundary and is not whitespace-only.
+   *
+   * @param chunk - The currently buffered text.
+   * @returns `true` when the chunk should be parsed now.
+   */
   isLoadableChunk(chunk: string) {
     const {
       lang: {
@@ -138,6 +185,14 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
       );
   }
 
+  /**
+   * Feeds a piece of text into the stream, parsing and flushing once a whole
+   *   paragraph has been buffered.
+   *
+   * @param text - The next piece of source text (e.g. a line).
+   * @returns A promise that resolves once any complete chunk has been parsed.
+   * @throws If the parser is not currently running.
+   */
   async parse(text: RawTextValue) {
     const {
       lang: {
@@ -173,12 +228,23 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     }
   }
 
+  /**
+   * Pauses the parser so buffered chunks are not parsed until resumed.
+   *
+   * @returns This parser, for chaining.
+   */
   pause() {
     this.state?.pause();
 
     return this;
   }
 
+  /**
+   * Tears the parser back down to an idle state, discarding state, stream, and
+   *   any buffered text.
+   *
+   * @returns This parser, for chaining.
+   */
   reset() {
     this.pause();
 
@@ -189,6 +255,11 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     return this;
   }
 
+  /**
+   * Resumes a paused parser, parsing any already-buffered complete chunk.
+   *
+   * @returns This parser, for chaining.
+   */
   resume() {
     this.state.resume();
 
@@ -205,11 +276,25 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     return this;
   }
 
+  /**
+   * Whether a parsed chunk should be flushed immediately.
+   *
+   * Always `true` here; subclasses can override to flush conditionally.
+   *
+   * @returns `true` to flush after each parsed chunk.
+   */
   // This method specifically leaves a way for subclasses to conditionally decide whether to flush.
   shouldFlush() {
     return true;
   }
 
+  /**
+   * After a chunk is parsed: when finalizing, closes the outstanding
+   *   {@link DocumentNode} span as the final node of the stream.
+   *
+   * @param ctx - The AST context for the chunk.
+   * @param state - The streaming state.
+   */
   protected async afterParse(ctx: ASTContext, state: StreamingState) {
     if (state.finalizing) {
       this.finalize(state);
@@ -225,6 +310,14 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     }
   }
 
+  /**
+   * Before the first chunk: opens the outer {@link DocumentNode} span and stashes
+   *   it in the state's temp cache so {@link StreamParser.afterParse | afterParse}
+   *   can close it later.
+   *
+   * @param ctx - The AST context for the chunk.
+   * @param state - The streaming state.
+   */
   protected async beforeParse(ctx: ASTContext, state: StreamingState) {
     if (state.isStartOfDocument && state.contextStackSize === 1) {
       const node = DocumentNode.new({
@@ -244,6 +337,13 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     }
   }
 
+  /**
+   * Builds the line and segments parsers for this parser's language.
+   *
+   * Subclasses override this to add the appropriate segment parser.
+   *
+   * @returns The parser registry keyed by level (`document`, `line`, `segments`).
+   */
   protected getParsers(): Parsers {
     const {
       lang,
@@ -262,6 +362,12 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     };
   }
 
+  /**
+   * Creates the {@link StreamingState} used for the parse.
+   *
+   * @param config - Optional streaming-state overrides (e.g. `onChunk`).
+   * @returns A promise resolving to the initialized {@link StreamingState}.
+   */
   protected async getState(config: Partial<ParserStateStreamingConfig> = {}) {
     const {
       lang,
@@ -278,6 +384,12 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     } as StreamingStateConfig);
   }
 
+  /**
+   * Trims a dangling trailing newline off the document's final paragraph so the
+   *   stream doesn't end with an extra blank line.
+   *
+   * @param state - The streaming state being finalized.
+   */
   protected finalize(state: StreamingState) {
     const {
       ctx,
@@ -300,6 +412,12 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
     }
   }
 
+  /**
+   * Iterates the current chunk's lines, delegating each to the `line` parser.
+   *
+   * @param ctx - The AST context for the chunk.
+   * @param state - The streaming state.
+   */
   protected async onParse(ctx: ASTContext, state: StreamingState) {
     const lineParser = state.getParser(`line`);
 

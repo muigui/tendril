@@ -10,6 +10,10 @@ import type {
   Metadata,
 } from './types.ts';
 
+/**
+ * Node keys whose values are *derived* (computed from other state) and therefore
+ *   must never be assigned when applying serialized data back onto a node.
+ */
 export const COMPUTED_NODE_KEYS = [
   `char_count`,
   `length`,
@@ -17,6 +21,14 @@ export const COMPUTED_NODE_KEYS = [
   `word_count`,
 ];
 
+/**
+ * Base class for every Tendril node.
+ *
+ * Holds the properties shared by all nodes — parsing context, language and
+ *   direction, a metadata bag, and the `ref_id` used to pair span markers — and
+ *   provides serialization ({@link NodeBasis.toJSON | toJSON}) plus the
+ *   {@link NodeBasis.applyData | applyData} helper used when rehydrating nodes.
+ */
 export class NodeBasis implements INodeBasis {
   #ctx!: ASTContext | undefined;
   #dir: ENUM_LANGUAGE_DIRECTION | undefined;
@@ -24,6 +36,16 @@ export class NodeBasis implements INodeBasis {
   #meta: Metadata | undefined;
   #ref_id: string | undefined;
 
+  /**
+   * Copies `data` onto `basis`, skipping computed keys and nullish values.
+   *
+   * Keys listed in {@link COMPUTED_NODE_KEYS} are ignored (their values are
+   *   derived), as are `null`/`undefined` values.
+   *
+   * @param basis - The node instance to copy properties onto.
+   * @param data - The source data to apply.
+   * @returns The same `basis` instance, for chaining.
+   */
   static applyData(basis: NodeBasis, data: INodeBasis = {}) {
     for (const [ key, value ] of Object.entries(data)) {
       if (COMPUTED_NODE_KEYS.includes(key)) {
@@ -38,6 +60,10 @@ export class NodeBasis implements INodeBasis {
     return basis;
   }
 
+  /**
+   * @param data - Initial node properties to apply; a `meta` bag is created if
+   *   none is supplied.
+   */
   constructor(data: INodeBasis = {}) {
     NodeBasis.applyData(this, data);
 
@@ -46,22 +72,27 @@ export class NodeBasis implements INodeBasis {
     }
   }
 
+  /** The parsing context this node was created within, if any. */
   get $ctx() {
     return this.#ctx;
   }
 
+  /** The node's writing/reading direction. */
   get dir() {
     return this.#dir;
   }
 
+  /** The node's language id (e.g. `'en'`). */
   get lang() {
     return this.#lang;
   }
 
+  /** The node's metadata bag. */
   get meta() {
     return this.#meta;
   }
 
+  /** The reference id pairing a `new` span marker with its `end`. */
   get ref_id() {
     return this.#ref_id;
   }
@@ -86,6 +117,11 @@ export class NodeBasis implements INodeBasis {
     this.#ref_id = value;
   }
 
+  /**
+   * Serializes the shared node properties to a plain object.
+   *
+   * @returns A plain-object {@link INodeBasis} snapshot of this node.
+   */
   toJSON() {
     const {
       dir,

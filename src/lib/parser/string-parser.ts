@@ -29,15 +29,32 @@ import type {
   RawTextValue,
 } from './types.ts';
 
+/** Configuration for a {@link StringParser} (and its subclasses). */
 export interface StringParserConfig extends ContextParserConfig {
+  /** Token-aggregation opt-in (see {@link AggregationConfig}); defaults to off. */
   aggregate?: AggregationConfig;
+  /** When `true`, mismatched opening/closing quotes are still paired. */
   handleMismatchedQuotes?: boolean;
 }
 
+/**
+ * Abstract base for parsers that consume a whole string (or array of paragraphs)
+ *   in one pass and return the finished {@link ASTNode}.
+ *
+ * It drives the document → line pipeline against a {@link SimpleState}, wrapping
+ *   the run in a {@link DocumentNode} span and, after parsing, normalizing line
+ *   breaks and optionally aggregating multi-token values (URLs, emails, …).
+ *   Subclasses ({@link TextDocumentParser}, {@link ASCIIArtParser}) choose the
+ *   segment parser via {@link StringParser.getParsers | getParsers}.
+ */
 export abstract class StringParser extends ContextParser<ASTContext> {
   #aggregate: AggregationConfig;
   #handleMismatchedQuotes: boolean;
 
+  /**
+   * @param config - Parser configuration, including aggregation and
+   *   mismatched-quote options.
+   */
   constructor(config: StringParserConfig) {
     super(config);
 
@@ -45,10 +62,24 @@ export abstract class StringParser extends ContextParser<ASTContext> {
     this.#handleMismatchedQuotes = config.handleMismatchedQuotes ?? false;
   }
 
+  /**
+   * Returns the finished AST from a completed parse state.
+   *
+   * Exposed as an overridable hook so subclasses can post-process the AST.
+   *
+   * @param state - The completed parse state.
+   * @returns The parsed {@link ASTNode}.
+   */
   getASTNode(state: SimpleState) {
     return state.ctx.ast;
   }
 
+  /**
+   * Parses `text` into a flat AST.
+   *
+   * @param text - The document string, or an array of paragraphs, to parse.
+   * @returns A promise resolving to the parsed {@link ASTNode}.
+   */
   async parse(text: RawTextValue) {
     const state = await this.getState(text);
 
@@ -57,6 +88,13 @@ export abstract class StringParser extends ContextParser<ASTContext> {
     return this.getASTNode(state);
   }
 
+  /**
+   * Closes the document span, normalizes line breaks, and runs token aggregation
+   *   (or a plain re-index when aggregation is off).
+   *
+   * @param ctx - The AST context.
+   * @param _state - The parse state (unused).
+   */
   protected async afterParse(ctx: ASTContext, _state: SimpleState) {
     ctx.closeSpan();
 
@@ -77,6 +115,12 @@ export abstract class StringParser extends ContextParser<ASTContext> {
     }
   }
 
+  /**
+   * Opens the outer {@link DocumentNode} span before parsing begins.
+   *
+   * @param ctx - The AST context.
+   * @param _state - The parse state (unused).
+   */
   protected async beforeParse(ctx: ASTContext, _state: SimpleState) {
     ctx.openSpan(DocumentNode.new({
       action: `new`,
@@ -86,6 +130,14 @@ export abstract class StringParser extends ContextParser<ASTContext> {
     }));
   }
 
+  /**
+   * Builds the line and segments parsers for this parser's language.
+   *
+   * Subclasses override this to add the segment parser appropriate to their
+   *   dialect (plain text vs ASCII art).
+   *
+   * @returns The parser registry keyed by level (`document`, `line`, `segments`).
+   */
   protected getParsers(): Parsers {
     const {
       lang,
@@ -105,6 +157,13 @@ export abstract class StringParser extends ContextParser<ASTContext> {
     };
   }
 
+  /**
+   * Creates the {@link SimpleState} for a parse, normalizing the source line
+   *   separator to the language's own where they differ.
+   *
+   * @param value - The raw text (or paragraphs) to seed the state with.
+   * @returns A promise resolving to the initialized {@link SimpleState}.
+   */
   protected async getState(value: RawTextValue) {
     const {
       lang,
@@ -125,6 +184,12 @@ export abstract class StringParser extends ContextParser<ASTContext> {
     });
   }
 
+  /**
+   * Iterates the document's lines, delegating each to the `line` parser.
+   *
+   * @param ctx - The AST context.
+   * @param state - The parse state.
+   */
   protected async onParse(ctx: ASTContext, state: SimpleState) {
     const lineParser = state.getParser(`line`);
 

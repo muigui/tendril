@@ -16,6 +16,13 @@ import {
 //   we normalize "00"→"+", strip separators, and let libphonenumber decide.
 const PHONE_PATTERN = /(?:\+|00)\d[\d\s()-]*\d/gu;
 
+/**
+ * Detects phone numbers that begin with an international marker (`+` or `00`),
+ *   confirmed by {@link isValidPhone} (which normalizes and defers to
+ *   `libphonenumber-js`).
+ *
+ * @see {@link AggregationDetector}
+ */
 export default {
   category: TOKEN_AGGREGATION_NODE_CATEGORY.PHONE_NUMBER,
   priority: 500,

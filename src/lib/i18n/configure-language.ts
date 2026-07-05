@@ -10,6 +10,26 @@ import {
   LINE_SEPARATOR,
 } from './types.ts';
 
+/**
+ * Builds and registers a {@link Language} configuration.
+ *
+ * Merges the supplied settings with sensible defaults (apostrophes, line
+ *   separator, paragraph split/join), constructs the {@link Quotes} lookup
+ *   tables, wires up an {@link Intl.Segmenter}-backed segmenter, and binds the
+ *   language helper functions (overriding any provided in `functions`). The
+ *   result is stored in {@link AVAILABLE_LANGUAGES} under its `id` and returned.
+ *
+ * @returns The fully-built, registered {@link Language}.
+ *
+ * @example
+ * ```typescript
+ * configureLanguage({
+ *   dir: LANGUAGE_DIRECTION.LTR,
+ *   id: 'en',
+ *   quotes: { tuples: [[ '"', '"' ], [ '‘', '’' ]] },
+ * });
+ * ```
+ */
 export function configureLanguage({
   apostrophes = /^[\u0027\u2019]$/, // ' ’
   dir,
@@ -78,6 +98,17 @@ export function configureLanguage({
   return AVAILABLE_LANGUAGES[id] = LANG as Language;
 }
 
+/**
+ * Builds the {@link Quotes} lookup tables from opening/closing quote pairs.
+ *
+ * Derives the flat `opening`/`closing` arrays and a `tupleMap` that resolves
+ *   either character of a pair back to the full tuple, alongside the original
+ *   `tuples` and `tuplesMismatched`.
+ *
+ * @param tuples - Valid `[open, close]` quote pairs.
+ * @param tuplesMismatched - Tolerated mismatched `[open, close]` pairs.
+ * @returns The assembled {@link Quotes} configuration.
+ */
 export function configureLanguageQuotes(
   tuples: Array<[string, string]>,
   tuplesMismatched: Array<[string, string]> = [],

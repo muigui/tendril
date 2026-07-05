@@ -2,6 +2,13 @@ import type {
   ENUM_TOKEN_AGGREGATION_NODE_CATEGORY,
 } from '../node/index.ts';
 
+/**
+ * Command actions the segment parsers emit to tell the {@link ASTContext} what to
+ *   do with the current segment (append a token, open/close a quote, or do
+ *   nothing).
+ *
+ * @enum {string}
+ */
 export const SEGMENT_COMMAND_ACTIONS = {
   // Instruct the parser to create a new `LineNode`,
   //   using the current segment, and append it to the `ASTNode`.
@@ -39,4 +46,5 @@ export type ENUM_SEGMENT_COMMAND_ACTIONS = typeof SEGMENT_COMMAND_ACTIONS[keyof 
  */
 export type AggregationConfig = boolean | ENUM_TOKEN_AGGREGATION_NODE_CATEGORY[];
 
+/** Raw input to a parser: a whole document string, or an array of paragraphs. */
 export type RawTextValue = string | string[];

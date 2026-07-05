@@ -1,11 +1,3 @@
-// What it does: Assumes the passed Stream is a line-delimited stream of AST Nodes
-//               and returns a new Stream, which contains the rendered text,
-//               from the AST Nodes in the past stream.
-// How it works: Iterates over each line in the Stream, building a chunk from each
-//               `SpanNode#action:new` to its `SpanNode#action:end` counterpart.
-//               Once a valid chunk of nodes has been aggregated, it renders them
-//               and writes the rendered text to the stream it returns, which you can consume however you like.
-
 import {
   type FileHandle,
 
@@ -23,6 +15,25 @@ import {
   ASTNode,
 } from '../node/index.ts';
 
+/**
+ * Renders a line-delimited stream of AST nodes back into text, written to a file.
+ *
+ * `stream` is assumed to be a newline-delimited (NDJSON) stream of serialized AST
+ *   nodes — the format produced by the streaming parsers. Each line is loaded
+ *   into a working {@link ASTNode}, and nodes are buffered until a complete,
+ *   renderable chunk has been accumulated: rendering is deferred while inside an
+ *   `unbound` (quote) span so that quotes overlapping block boundaries are not
+ *   split mid-render. Whenever the buffer reaches the `end` of a `block` node and
+ *   no quote is open, the buffered nodes are rendered and appended to `file`,
+ *   then cleared. Any remaining nodes are flushed once the stream is exhausted.
+ *
+ * The target `file` is truncated before writing begins.
+ *
+ * @param stream - An open {@link FileHandle} yielding one serialized AST node per line.
+ * @param lang - Language code used to seed the working AST's direction and id.
+ * @param file - Path of the output file that rendered text is appended to.
+ * @returns A promise that resolves once the whole stream has been rendered.
+ */
 export async function renderASTFile(stream: FileHandle, lang: string, file: string) {
   const i18n = getLangData(lang);
   const ast = ASTNode.new({
@@ -64,6 +75,13 @@ export async function renderASTFile(stream: FileHandle, lang: string, file: stri
   }
 }
 
+/**
+ * Renders the buffered AST, appends the text to `file`, then clears the buffer.
+ *
+ * @param file - Path of the output file to append rendered text to.
+ * @param ast - The working AST whose buffered nodes are rendered and then cleared.
+ * @returns A promise that resolves once the rendered text has been appended.
+ */
 async function appendAndClear(file: string, ast: ASTNode) {
   await appendFile(file, ast.render(), `utf8`);
 

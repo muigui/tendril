@@ -51,21 +51,43 @@ import {
 
 type PartialParserStateStreamingConfig = Partial<ParserStateStreamingConfig>;
 
+/** Options common to {@link StreamingTextDocumentParser}'s parse-* methods. */
 export interface BaseParseConfig extends PartialParserStateStreamingConfig {
+  /** Where to write rendered output: a file path, or a writable stream. */
   output?: string | Writable;
 }
 
+/** Options for {@link StreamingTextDocumentParser.parseFile}. */
 export interface ParseFileConfig extends BaseParseConfig {
+  /** Path of the input file to parse. */
   file: string;
 }
 
+/** Options for {@link StreamingTextDocumentParser.parseURL} (also accepts `fetch` init). */
 export interface ParseURLConfig extends BaseParseConfig, RequestInit {
+  /** URL of the document to fetch and parse. */
   url: string;
 }
 
+/** Prefix used for the temp directory that downloaded URLs are streamed into. */
 export const TEMP_DIRECTORY_PREFIX = `tendril-stream-parser-output-dir-`;
 
+/**
+ * A streaming parser for text documents read from a file or URL.
+ *
+ * A {@link StreamParser} using the standard {@link SegmentParser}, with
+ *   convenience entry points that read an input source line by line, feed it
+ *   through the streaming pipeline, and optionally pipe the serialized AST to an
+ *   output file or stream.
+ */
 export class StreamingTextDocumentParser extends StreamParser {
+  /**
+   * Factory for a {@link StreamingTextDocumentParser}.
+   *
+   * @param lang - Language code used to resolve segmentation rules (e.g. `'en'`).
+   * @param originalLineSeparator - The source text's line separator (defaults to `LF`).
+   * @returns A new {@link StreamingTextDocumentParser} instance.
+   */
   static new(lang: string, originalLineSeparator: ENUM_LINE_SEPARATOR = LINE_SEPARATOR.LF) {
     return new StreamingTextDocumentParser({
       lang: getLangData(lang),
@@ -73,6 +95,11 @@ export class StreamingTextDocumentParser extends StreamParser {
     });
   }
 
+  /**
+   * Ends the stream, additionally clearing the cached input/output stream handles.
+   *
+   * @returns A promise resolving to this parser.
+   */
   end() {
     const {
       state,
@@ -84,6 +111,16 @@ export class StreamingTextDocumentParser extends StreamParser {
     return super.end();
   }
 
+  /**
+   * Parses a local file, streaming its lines through the parser.
+   *
+   * Opens the file (relative to the current working directory), begins a
+   *   streaming parse, wires up the optional output target, and consumes the
+   *   input to completion.
+   *
+   * @param config - File path plus optional `output` and streaming-state options.
+   * @returns A promise resolving to this parser once the file is fully parsed.
+   */
   async parseFile(config: ParseFileConfig) {
     await using file = await open(resolve(cwd(), config.file), `r`);
 
@@ -96,6 +133,17 @@ export class StreamingTextDocumentParser extends StreamParser {
       .parseInputStream();
   }
 
+  /**
+   * Fetches a document from a URL and parses it.
+   *
+   * The response body is streamed to a temporary file, which is then parsed via
+   *   {@link StreamingTextDocumentParser.parseFile | parseFile}. Any extra config
+   *   fields are forwarded to `fetch` as request init.
+   *
+   * @param config - URL plus optional `output`, streaming-state, and `fetch` options.
+   * @returns A promise resolving to this parser.
+   * @throws If the URL cannot be fetched (non-OK response).
+   */
   async parseURL(config: ParseURLConfig) {
     const {
       onChunk = DEFAULT_STREAM_PARSER_STATE_CONFIG.onChunk,
@@ -139,6 +187,11 @@ export class StreamingTextDocumentParser extends StreamParser {
     return this;
   }
 
+  /**
+   * Extends the base parsers with the standard {@link SegmentParser}.
+   *
+   * @returns The parser registry keyed by level.
+   */
   protected getParsers(): Parsers {
     const {
       lang,
@@ -153,6 +206,13 @@ export class StreamingTextDocumentParser extends StreamParser {
     };
   }
 
+  /**
+   * Wires the parser's output stream to the configured target (a file path or a
+   *   writable stream), if any.
+   *
+   * @param config - The parse config carrying the optional `output` target.
+   * @returns This parser, for chaining.
+   */
   protected initOutputStream(config: BaseParseConfig) {
     const {
       output,
@@ -178,6 +238,12 @@ export class StreamingTextDocumentParser extends StreamParser {
     return this;
   }
 
+  /**
+   * Reads the cached input file line by line, feeding each into
+   *   {@link StreamParser.parse | parse}, then ends the stream.
+   *
+   * @returns A promise resolving to this parser once the input is exhausted.
+   */
   protected async parseInputStream() {
     const input = this.state.temp<FileHandle>(`input_stream`);
 

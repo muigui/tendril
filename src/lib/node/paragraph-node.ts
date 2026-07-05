@@ -9,12 +9,27 @@ import type {
   ISpanNode,
 } from './types.ts';
 
+/** Configuration for {@link ParagraphNode.new} — an {@link ISpanNode} without its fixed `category`/`type`. */
 export type ParagraphNodeConfig = Omit<ISpanNode,
   | `category`
   | `type`
 >;
 
+/**
+ * A paragraph span.
+ *
+ * A {@link SpanNode} with `category: paragraph` and `type: block`. Its value
+ *   defaults to the language's line separator (so a paragraph break renders as a
+ *   newline) unless an explicit value is supplied.
+ */
 export class ParagraphNode extends SpanNode {
+  /**
+   * Factory for a {@link ParagraphNode}.
+   *
+   * @param config - The span configuration; `value` defaults to the language's
+   *   line separator.
+   * @returns A new {@link ParagraphNode} marker.
+   */
   static new(config: ParagraphNodeConfig) {
     const {
       lineSeparator,
@@ -28,6 +43,10 @@ export class ParagraphNode extends SpanNode {
     });
   }
 
+  /**
+   * @param config - The span configuration; when no `value` is given it defaults
+   *   to the resolved language's line separator.
+   */
   constructor(config: ISpanNode) {
     super(config);
 

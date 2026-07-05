@@ -19,13 +19,39 @@ import {
   SEGMENT_COMMAND_ACTIONS as ACTION,
 } from './types.ts';
 
+/** Configuration for a {@link SegmentParser}. */
 export interface SegmentParserConfig extends ContextParserConfig { }
 
+/**
+ * Innermost parser: decides what a single segment means and mutates the AST
+ *   accordingly.
+ *
+ * Word-like segments become {@link TokenNode}s; quote characters open or close
+ *   {@link QuoteNode} spans (including apostrophe-vs-quote disambiguation and, when
+ *   enabled, mismatched-quote handling); everything else is appended as a token.
+ */
 export class SegmentParser extends ContextParser<Segments[0]> {
+  /**
+   * Factory for a {@link SegmentParser}.
+   *
+   * @param config - Parser configuration.
+   * @returns A new {@link SegmentParser} instance.
+   */
   static new(config: SegmentParserConfig) {
     return new SegmentParser(config);
   }
 
+  /**
+   * Classifies the current segment into a command action.
+   *
+   * Distinguishes word-like text, opening/closing quotes (matched, mismatched, or
+   *   an apostrophe used mid-word), and plain punctuation, so the caller knows
+   *   whether to append a token or open/close a quote.
+   *
+   * @param curr - The current segment.
+   * @param state - The shared parser state.
+   * @returns The command action to apply.
+   */
   protected async getCommandAction(curr: Segments[0], state: BaseState): Promise<ENUM_SEGMENT_COMMAND_ACTIONS> {
     const {
       ctx: {
@@ -90,6 +116,13 @@ export class SegmentParser extends ContextParser<Segments[0]> {
     return ACTION.APPEND_TOKEN;
   }
 
+  /**
+   * Applies the classified command action for the current segment: append a
+   *   token, or open/close a (possibly mismatched) quote.
+   *
+   * @param curr - The current segment.
+   * @param state - The shared parser state.
+   */
   protected async onParse(curr: Segments[0], state: BaseState) {
     const {
       ctx,
