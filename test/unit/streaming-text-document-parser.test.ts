@@ -8,6 +8,9 @@ import {
   basename,
 } from 'node:path';
 import {
+  env,
+} from 'node:process';
+import {
   beforeEach,
   suite,
   test,
@@ -30,6 +33,7 @@ import {
   Files,
 } from '../utils/index.ts';
 
+const isCI = env.CI === `true`;
 const LANG = `en`;
 
 suite(`@muigui/tendril > StreamingTextDocumentParser`, () => {
@@ -73,16 +77,20 @@ suite(`@muigui/tendril > StreamingTextDocumentParser`, () => {
     suite(`#parseFile`, () => {
       suite(`Line Separator: LF`, () => {
         const parser = StreamingTextDocumentParser.new(LANG);
+        const files = [
+          `ECMA-262.original.txt`,
+          `RFC-7530.original.txt`,
+        ];
+
+        if (!isCI) {
+          files.push(`unicode-v17-core-specification.original.txt`);
+        }
 
         beforeEach(() => {
           parser.reset();
         });
 
-        [
-          `ECMA-262.original.txt`,
-          `RFC-7530.original.txt`,
-          `unicode-v17-core-specification.original.txt`,
-        ].forEach((fileName) => {
+        files.forEach((fileName) => {
           test(`File: ${fileName}`, async () => {
             const file = Files.getFixturePath(fileName, LANG);
             const output = Files.getASTJSONLPath(fileName, LANG, true);
