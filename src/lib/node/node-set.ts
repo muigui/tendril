@@ -332,8 +332,7 @@ export class NodeSet extends NodeBasis implements INodeSet {
    * @returns A new {@link NodeSet} (or subclass) instance.
    */
   clone(shallow = false): NodeSet {
-    // @ts-ignore: Ignore TS2339. Why? Because in this particular instance —
-    //                            TS does not know what the hell it's talking about!
+    // @ts-ignore: Ignore TS2339. It does exist. Oh, yes. It does.
     const nodeSet: NodeSet = this.constructor.new(this.toJSON(true));
 
     nodeSet.$ctx = this.$ctx;
@@ -516,8 +515,4 @@ export class NodeSet extends NodeBasis implements INodeSet {
   [Symbol.toPrimitive]() {
     return this.render();
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilNode(Set)`;
-  // }
 }

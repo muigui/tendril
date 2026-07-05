@@ -52,8 +52,4 @@ export class LineContext extends IteratorContext<Segments, SegmentsContext> {
 
     this.segments = undefined;
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilContext(Line)`;
-  // }
 }

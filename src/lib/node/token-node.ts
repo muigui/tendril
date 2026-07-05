@@ -202,8 +202,7 @@ export class TokenNode extends NodeBasis implements ITokenNode {
       /* eslint-enable @typescript-eslint/no-unused-vars */
       ...data
     } = this.toJSON();
-    // @ts-ignore: Ignore TS2339. Why? Because in this particular instance —
-    //                            TS does not know what the hell it's talking about!
+    // @ts-ignore: Ignore TS2339. It does exist. Oh, yes. It does.
     const node = this.constructor.new(data);
 
     node.$ctx = this.$ctx;
@@ -248,8 +247,4 @@ export class TokenNode extends NodeBasis implements ITokenNode {
   [Symbol.toPrimitive]() {
     return this.render();
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilNode(Token)`;
-  // }
 }

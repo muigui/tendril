@@ -74,8 +74,4 @@ export class ASCIISegmentParser extends ContextParser<Segments[0]> {
 
     ctx.append(TokenNode.fromSegment(curr, ctx));
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilParser(ASCIISegment)`;
-  // }
 }

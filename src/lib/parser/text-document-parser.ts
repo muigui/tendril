@@ -56,8 +56,4 @@ export class TextDocumentParser extends StringParser {
       }),
     };
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilParser(TextDocument)`;
-  // }
 }

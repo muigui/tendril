@@ -15,7 +15,4 @@ import {
  *   type at the segment level of the document hierarchy.
  */
 export class SegmentsContext extends IteratorContext<Segments[0]> {
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilContext(Segments)`;
-  // }
 }

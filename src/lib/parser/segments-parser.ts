@@ -89,8 +89,4 @@ export class SegmentsParser extends ContextParser<SegmentsContext> {
       await segmentParser.parseContext(curr, state);
     }
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilParser(Segments)`;
-  // }
 }

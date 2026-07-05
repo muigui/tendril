@@ -150,7 +150,7 @@ export abstract class StringParser extends ContextParser<ASTContext> {
     });
 
     return {
-      // @ts-ignore: Ignore TS2322... I don't care, TypeScript. NO ONE CARES, TYPESCRIPT!!!
+      // @ts-ignore: Ignore TS2322... Because I don't care...
       document: this,
       line,
       segments,
@@ -197,8 +197,4 @@ export abstract class StringParser extends ContextParser<ASTContext> {
       await lineParser.parseContext(line, state);
     }
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilParser(String)`;
-  // }
 }

@@ -219,8 +219,4 @@ export class StreamingState extends BaseState {
     this.#currentChunk = null;
     this.#currentIndex = 0;
   }
-
-  // get [Symbol.toStringTag]() {
-  //   return `TendrilState(Streaming)`;
-  // }
 }
