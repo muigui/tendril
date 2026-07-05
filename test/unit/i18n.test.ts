@@ -27,6 +27,8 @@ import {
 } from '../utils/index.ts';
 
 const isCI = env.CI === `true`;
+// [CC] TODO: The lines feed issues in CI/CD are most likely to do with the GIT
+//              `core.autocrlf` setting. So, you probably want to fix that — guy face!
 const URLsByLineSeparator = Object.groupBy(
   URLs,
   ({ lineSeparator = `LF` }) => isCI

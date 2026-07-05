@@ -77,23 +77,22 @@ suite(`@muigui/tendril > StreamingTextDocumentParser`, () => {
     suite(`#parseFile`, () => {
       suite(`Line Separator: LF`, () => {
         const parser = StreamingTextDocumentParser.new(LANG);
-        const files = [
-          `ECMA-262.original.txt`,
-          `RFC-7530.original.txt`,
-        ];
-
-        if (!isCI) {
-          files.push(`unicode-v17-core-specification.original.txt`);
-        }
 
         beforeEach(() => {
           parser.reset();
         });
 
-        files.forEach((fileName) => {
-          test(`File: ${fileName}`, async () => {
-            const file = Files.getFixturePath(fileName, LANG);
-            const output = Files.getASTJSONLPath(fileName, LANG, true);
+        [
+          [ `ECMA-262.original.txt`, false ],
+          [ `RFC-7530.original.txt`, false ],
+          // [CC] TODO: Like the issue in `i18n.test.ts`: the lines feed issues
+          //              in CI/CD are most likely to do with the GIT `core.autocrlf` setting.
+          //            So, you'll probably want to fix that — guy face!
+          [ `unicode-v17-core-specification.original.txt`, isCI ],
+        ].forEach(([ fileName, skip ]) => {
+          test(`File: ${fileName}`, { skip }, async () => {
+            const file = Files.getFixturePath(`${fileName}`, LANG);
+            const output = Files.getASTJSONLPath(`${fileName}`, LANG, true);
 
             await parser.parseFile({
               file,
@@ -103,7 +102,7 @@ suite(`@muigui/tendril > StreamingTextDocumentParser`, () => {
 
             await setTimeout(1_000);
 
-            const renderedFileName = Files.getRenderedPath(fileName, LANG);
+            const renderedFileName = Files.getRenderedPath(`${fileName}`, LANG);
 
             await renderASTFile(
               await open(output, `r`),
