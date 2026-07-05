@@ -21,7 +21,7 @@ permissions:
   #  deployments: write
   id-token: write
   packages: write
-#  pull-requests: write
+  pull-requests: write
 #  statuses: write
 
 jobs:

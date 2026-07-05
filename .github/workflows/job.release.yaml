@@ -88,9 +88,6 @@ jobs:
 
       - id: release-please
         name: Release Please
-        permissions:
-          contents: write       # create the release tag + GitHub Release
-          pull-requests: write  # open/update the release PR
         uses: googleapis/release-please-action@v4
         with:
           config-file: release-please-config.json
@@ -100,9 +97,6 @@ jobs:
         # Only when a release was just cut, and only on main.
         if: ${{ steps.release-please.outputs.release_created == 'true' && github.ref == 'refs/heads/main' }}
         name: NPM Publish
-        permissions:
-          contents: read
-          id-token: write
         # No NODE_AUTH_TOKEN: auth is via OIDC trusted publishing.
         # Provenance is generated automatically (repo is public).
         run: |
