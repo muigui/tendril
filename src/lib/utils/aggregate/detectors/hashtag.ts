@@ -8,12 +8,13 @@ import type {
 
 import {
   rangesOf,
+  WORD_CHARS,
 } from './util.ts';
 
-// `@handle` / `#tag`: word characters (so underscores are kept, whitespace and
-//   punctuation are not). The lookbehind stops the leading marker from being
-//   absorbed mid-word — notably the "@" inside an email, or a "C#".
-const HASHTAG_PATTERN = /(?<![\w#])#\w+/gu;
+// `#tag`: Unicode word characters (see WORD_CHARS — letters/marks/numbers from
+//   any script, plus underscore). The lookbehind stops the leading "#" from
+//   being absorbed mid-word — notably a "C#" or a "#" inside another token.
+const HASHTAG_PATTERN = new RegExp(String.raw`(?<![${WORD_CHARS}#])#[${WORD_CHARS}]+`, `gu`);
 
 /**
  * Detects hashtags: a `#` followed by word characters, with a lookbehind that

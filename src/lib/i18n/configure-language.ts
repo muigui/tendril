@@ -32,6 +32,7 @@ import {
  */
 export function configureLanguage({
   apostrophes = /^[\u0027\u2019]$/, // ' ’
+  defaultRegion,
   dir,
   functions = {},
   id,
@@ -41,15 +42,22 @@ export function configureLanguage({
   paragraphJoin,
   paragraphSplit = /[\n\r\u2028\u2029]{2}/,
   quotes,
+  // Latin sentence punctuation that is almost never part of a link when it sits
+  //   on the trailing edge. Scripts with different sentence punctuation (CJK,
+  //   Arabic, …) should override this per language.
+  trailingPunctuation = /[.,;:!?'")\]}]+$/u,
 }: {
   /** Regular expression for apostrophe characters */
   apostrophes?: Language[`apostrophes`];
+  /** Default region (ISO 3166-1 alpha-2) for national-format phone validation */
+  defaultRegion?: Language[`defaultRegion`];
   /** Language writing/reading direction (e.g. 'ltr' for English) */
   dir: Language[`dir`];
   functions?: Partial<
     Omit<
       Language,
       | `apostrophes`
+      | `defaultRegion`
       | `dir`
       | `id`
       | `lineSeparator`
@@ -57,6 +65,7 @@ export function configureLanguage({
       | `paragraphSplit`
       | `quotes`
       | `segmentBy`
+      | `trailingPunctuation`
     >
   >;
   /** Language identifier (e.g. 'en' for English) */
@@ -72,11 +81,14 @@ export function configureLanguage({
     & Partial<Pick<Quotes, `tuplesMismatched`>>
     /** Array of mismatched quote pairs as tuples */
     & Pick<Quotes, `tuples`>;
+  /** Regular expression for trailing punctuation to trim from a detected value */
+  trailingPunctuation?: Language[`trailingPunctuation`];
 }) {
   paragraphJoin ??= lineSeparator.repeat(2);
 
   const LANG: Partial<Language> = {
     apostrophes,
+    defaultRegion,
     dir,
     id,
     lineSeparator,
@@ -84,6 +96,7 @@ export function configureLanguage({
     paragraphSplit,
     quotes: configureLanguageQuotes(quotes.tuples, quotes.tuplesMismatched ?? []),
     segmentBy: Segmenter.create(id),
+    trailingPunctuation,
   };
 
   for (const [ name, defaultImpl ] of Object.entries(LANG_DEFAULTS)) {
