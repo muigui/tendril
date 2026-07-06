@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/muigui/tendril/compare/tendril-v1.0.0...tendril-v1.0.1) (2026-07-06)
+
+
+### Bug Fixes
+
+* ensure aggregate detectors correctly support internationalization ([#6](https://github.com/muigui/tendril/issues/6)) ([7d0aa38](https://github.com/muigui/tendril/commit/7d0aa385a56d4d52c041bb5729f33d8a40c3ff32))
+
 ## 1.0.0 (2026-07-05)
 
 
