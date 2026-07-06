@@ -127,6 +127,20 @@ suite(`@muigui/tendril > token aggregation`, () => {
 
       assert.equal(username.value, `@someone_else`);
     });
+
+    test(`captures a whole non-Latin handle (accented letters)`, async () => {
+      const ast = await parse(`Ping @José about it.`);
+      const [ username ] = aggregatesIn(ast);
+
+      assert.equal(username.value, `@José`);
+    });
+
+    test(`captures a whole non-Latin handle (non-Latin script)`, async () => {
+      const ast = await parse(`Ping @محمد about it.`);
+      const [ username ] = aggregatesIn(ast);
+
+      assert.equal(username.value, `@محمد`);
+    });
   });
 
   suite(`hashtag`, () => {
@@ -143,6 +157,14 @@ suite(`@muigui/tendril > token aggregation`, () => {
       const [ hashTag ] = aggregatesIn(ast);
 
       assert.equal(hashTag.value, `#underscores_but_not_spaces`);
+    });
+
+    test(`captures a whole non-Latin hashtag`, async () => {
+      const ast = await parse(`Trending: #日本語 today.`);
+      const [ hashTag ] = aggregatesIn(ast);
+
+      assert.equal(hashTag.category, TOKEN_AGGREGATION_NODE_CATEGORY.HASHTAG);
+      assert.equal(hashTag.value, `#日本語`);
     });
   });
 

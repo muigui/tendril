@@ -1,4 +1,6 @@
 import {
+  type CountryCode,
+
   isValidPhoneNumber,
 } from 'libphonenumber-js';
 
@@ -7,22 +9,34 @@ import type {
 } from '../types.ts';
 
 /**
+ * Character class (regex-source, not a `RegExp`) for the "word" characters that
+ *   make up a social handle or hashtag. Unlike `\w` (which is ASCII-only even
+ *   under the `u` flag), this covers letters, combining marks, and numbers from
+ *   *every* script, so `@José`, `#日本語`, and `@محمد` match as whole tokens.
+ *   Underscore is kept for parity with the previous `\w` behavior.
+ */
+export const WORD_CHARS = String.raw`\p{L}\p{M}\p{N}_`;
+
+/**
  * Validates a candidate phone number via `libphonenumber-js`.
  *
  * Strips separators, normalizes a leading `00` international prefix to `+`, and
- *   defers to `isValidPhoneNumber` — returning `false` if that throws.
+ *   defers to `isValidPhoneNumber` — returning `false` if that throws. A
+ *   `region` (when supplied by the language) lets national-format numbers
+ *   validate; without it only international (E.164) numbers are accepted.
  *
  * @param candidate - The raw phone-number-like text.
+ * @param region - Optional default region for national-format validation.
  * @returns `true` when the candidate is a valid phone number.
  */
-export function isValidPhone(candidate: string) {
+export function isValidPhone(candidate: string, region?: CountryCode) {
   const digits = candidate.replace(/[^\d+]/gu, ``);
   const e164 = digits.startsWith(`00`)
     ? `+${digits.slice(2)}`
     : digits;
 
   try {
-    return isValidPhoneNumber(e164);
+    return isValidPhoneNumber(e164, region);
   }
   catch {
     return false;

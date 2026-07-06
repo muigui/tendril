@@ -8,12 +8,14 @@ import type {
 
 import {
   rangesOf,
+  WORD_CHARS,
 } from './util.ts';
 
-// `@handle` / `#tag`: word characters (so underscores are kept, whitespace and
-//   punctuation are not). The lookbehind stops the leading marker from being
-//   absorbed mid-word — notably the "@" inside an email, or a "C#".
-const USERNAME_PATTERN = /(?<![\w@.+-])@\w+/gu;
+// `@handle`: Unicode word characters (see WORD_CHARS — letters/marks/numbers
+//   from any script, plus underscore). The lookbehind stops the leading "@"
+//   from being absorbed into an email address (preceded by a word char, ".",
+//   "+", or "-") or a chained "@".
+const USERNAME_PATTERN = new RegExp(String.raw`(?<![${WORD_CHARS}@.+-])@[${WORD_CHARS}]+`, `gu`);
 
 /**
  * Detects @-mentions: an `@` followed by word characters, with a lookbehind that

@@ -1,4 +1,8 @@
 import type {
+  CountryCode,
+} from 'libphonenumber-js';
+
+import type {
   BaseState,
 } from '../state/index.ts';
 
@@ -47,6 +51,9 @@ export type ENUM_SEGMENT_GRANULARITY = typeof SEGMENT_GRANULARITY[keyof typeof S
 export interface Language {
   /** Regular expression for apostrophe characters */
   apostrophes: RegExp;
+  /** Default region (ISO 3166-1 alpha-2) used to validate national-format phone
+   *  numbers; when `undefined`, only international (E.164) numbers are accepted */
+  defaultRegion?: CountryCode;
   /** Language writing/reading direction (e.g. 'ltr' for English) */
   dir: ENUM_LANGUAGE_DIRECTION;
   /** Function that returns the first tuple where the opening quote matches the passed `value: string` */
@@ -65,8 +72,6 @@ export interface Language {
   isEmpty: ((value: string | undefined, state?: BaseState) => boolean) & ThisType<Language>;
   /** Function that returns `true` if the passed value is a single newline */
   isNewLineOnly: ((value: string, state?: BaseState) => boolean) & ThisType<Language>;
-  /** Function that returns `true` if the passed value is a numerical value */
-  isNumerical: ((value: string, state?: BaseState) => boolean) & ThisType<Language>;
   /** Function that returns `true` if the passed value is an opening quote */
   isOpeningQuote: ((value: string, state?: BaseState) => boolean) & ThisType<Language>;
   /** Function that returns `true` if the passed value only contains white space */
@@ -89,6 +94,11 @@ export interface Language {
   segmentBy: SegmentByGranularity;
   /** Function that splits a single `string` using a paragraph separator and returns a `string[]` */
   splitIntoParagraphs: ((value: string, state?: BaseState) => string[]) & ThisType<Language>;
+  /** Regular expression matching trailing punctuation to trim from the edge of a
+   *  detected value — e.g. the sentence-final "." in "…visit https://x.com." or a
+   *  wrapping ")". Anchored to the end of the string. Override per script (CJK,
+   *  Arabic, …) whose sentence punctuation differs from the Latin default. */
+  trailingPunctuation: RegExp;
 }
 
 /**

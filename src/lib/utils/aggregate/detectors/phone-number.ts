@@ -27,11 +27,11 @@ export default {
   category: TOKEN_AGGREGATION_NODE_CATEGORY.PHONE_NUMBER,
   priority: 500,
 
-  detect(text) {
+  detect(text, lang) {
     const matches: AggregationMatch[] = [];
 
     for (const match of text.matchAll(PHONE_PATTERN)) {
-      if (isValidPhone(match[0])) {
+      if (isValidPhone(match[0], lang.defaultRegion)) {
         matches.push({
           end: match.index + match[0].length,
           start: match.index,
