@@ -1,7 +1,7 @@
 {
-  "name": "@muigui/tendril",
+  "name": "@muigui/tendril-monorepo",
   "author": "Christos Constandinou <christos@muigui.com> (https://github.com/constantology)",
-  "description": "muigui | Tendril",
+  "description": "muigui | Tendril | Monorepo",
   "license": "Apache-2.0",
   "maintainers": [
     {
@@ -10,54 +10,35 @@
       "url": "https://github.com/constantology"
     }
   ],
+  "private": true,
   "type": "module",
-  "version": "1.0.1",
-  "exports": {
-    ".": {
-      "default": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./i18n": {
-      "default": "./dist/lib/i18n/index.js",
-      "types": "./dist/lib/i18n/index.d.ts"
-    },
-    "./lang": {
-      "default": "./dist/lib/i18n/index.js",
-      "types": "./dist/lib/i18n/index.d.ts"
-    },
-    "./types": {
-      "default": "./dist/types.js",
-      "types": "./dist/types.d.ts"
-    }
-  },
+  "version": "0.0.0",
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf coverage dist node_modules tsconfig.tsbuildinfo",
-    "lint": "eslint --config eslint.config.js --report-unused-disable-directives ./src",
-    "lint:fix": "lint-staged --verbose",
-    "lint:fix:all": "npm run lint -- --fix",
-    "postbuild": "rm -rf tsconfig.tsbuildinfo",
-    "pretest": "rm -rf coverage && mkdir -p coverage",
-    "pretest:agg": "rm -rf coverage && mkdir -p coverage",
-    "test": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout {src,test}/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}",
-    "test:agg": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout test/unit/aggregate.test.ts"
+    "build": "npm run build --if-present --workspaces",
+    "clean": "npm run clean --if-present --workspaces",
+    "lint": "npm run lint --if-present --workspaces",
+    "lint:fix": "npm run lint:fix --if-present --workspaces",
+    "lint:fix:all": "npm run lint:fix:all --if-present --workspaces",
+    "postws:clean:install": "npm run build",
+    "prews:clean:install": "npm run clean",
+    "test": "npm run test --if-present --workspaces",
+    "ws:ci": "npm run ws:clean-install",
+    "ws:clean-install": "npm ci --include-workspace-root --workspaces",
+    "ws:clean:install": "npm run ws:install",
+    "ws:i": "npm run ws:install",
+    "ws:install": "npm install --include-workspace-root --workspaces"
   },
   "dependencies": {
-    "@hapi/address": "^5.1.1",
-    "libphonenumber-js": "^1.0.9"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
-    "@muigui/code-style": "^1.0.0",
-    "@types/node": "^24.12.4",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@muigui/code-style": "^1.0.3",
+    "@types/node": "^26.4.1",
     "@types/shelljs": "^0.10.0",
-    "conventional-changelog-cli": "^5.0.0",
-    "conventional-changelog-eslint": "^6.1.0",
-    "conventional-recommended-bump": "^11.2.0",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.5",
-    "npm-check-updates": "^20.0.0",
+    "lint-staged": "^17.4.1",
+    "npm-check-updates": "^23.1.0",
     "shelljs": "^0.10.0",
     "typescript": "^6.0.3"
   },
@@ -74,7 +55,7 @@
     "type": "git",
     "url": "git+ssh://git@github.com/muigui/tendril.git"
   },
-  "lint-staged": {
-    "./src/**/*.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}": "eslint --config eslint.config.js --fix --report-unused-disable-directives"
-  }
+  "workspaces": [
+    "./workspaces/tendril-library"
+  ]
 }
