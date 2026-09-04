@@ -64,7 +64,7 @@ jobs:
       - id: cache-hash
         name: Resolve the SHA-256 hash part of the cache key
         run: |
-          echo "cache_hash=${{ hashFiles('src/*.ts', 'src/**/*.ts') }}" >> ${GITHUB_OUTPUT}
+          echo "cache_hash=${{ hashFiles('**/src/**/*.ts', '**/src/**/*.yaml', '**/proto/**') }}" >> ${GITHUB_OUTPUT}
 
       - id: cache-dist-restore
         name: Restore cached build artifacts
