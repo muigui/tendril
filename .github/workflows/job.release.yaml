@@ -47,6 +47,12 @@ on:
           PR was merged); empty otherwise. Callers use this to skip redundant
           lint/test jobs on the release commit.
         value: ${{ jobs.release.outputs.release_created }}
+      paths_released:
+        description: |
+          JSON array of workspace paths that got a release created this run
+          (e.g. `["workspaces/tendril-library"]`), or `[]` if release-please
+          only opened/updated a release PR without merging.
+        value: ${{ jobs.release.outputs.paths_released }}
 
 permissions:
   actions: write
@@ -64,6 +70,31 @@ jobs:
 
     outputs:
       release_created: ${{ steps.release-please.outputs.release_created }}
+      paths_released: ${{ steps.release-please.outputs.paths_released }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: false
+
+      - id: release-please
+        name: Release Please
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: Publish
+    needs: release
+    if: ${{ needs.release.outputs.paths_released != '[]' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        path: ${{ fromJSON(needs.release.outputs.paths_released) }}
 
     steps:
       - name: Checkout
@@ -96,18 +127,9 @@ jobs:
           key: ${{ inputs.build_cache_key }}
           path: ${{ inputs.build_path }}
 
-      - id: release-please
-        name: Release Please
-        uses: googleapis/release-please-action@v4
-        with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-
       - id: npm-publish
-        # Only when a release was just cut, and only on main.
-        if: ${{ steps.release-please.outputs.release_created == 'true' && github.ref == 'refs/heads/main' }}
         name: NPM Publish
         # No NODE_AUTH_TOKEN: auth is via OIDC trusted publishing.
         # Provenance is generated automatically (repo is public).
         run: |
-          npm publish
+          cd ${{ matrix.path }} && npm publish
