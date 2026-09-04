@@ -78,7 +78,7 @@ jobs:
       - name: NPM CI
         if: steps.cache-hit.outputs.cache_hit != 'true'
         run: |
-          npm ci
+          npm run ws:clean-install
 
       - id: cache-deps-save
         name: Cache dependencies
