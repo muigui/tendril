@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/muigui/tendril/compare/tendril-v1.0.1...tendril-v1.0.2) (2026-09-04)
+
+
+### Code Refactoring
+
+* convert to monorepo ([#8](https://github.com/muigui/tendril/issues/8)) ([4dfaff7](https://github.com/muigui/tendril/commit/4dfaff7b5f88cafcda1296866d83d4dfb53d42c3))
+
 ## [1.0.1](https://github.com/muigui/tendril/compare/tendril-v1.0.0...tendril-v1.0.1) (2026-07-06)
 
 
