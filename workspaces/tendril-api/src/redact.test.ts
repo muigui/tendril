@@ -7,12 +7,11 @@ import {
 } from 'node:test';
 
 import {
-  Redact,
-} from '@muigui/tendril';
-import {
   Files,
   readFileContents,
 } from '@muigui/tendril-test-utils';
+
+import * as Redact from './redact.ts';
 
 const LANG = `en`;
 

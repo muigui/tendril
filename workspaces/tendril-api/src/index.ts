@@ -15,5 +15,3 @@ export * as Redact from './redact.ts';
  * @see {@link RemoveQuotes.fromStringWithMismatchedQuotes}
  */
 export * as RemoveQuotes from './remove-quotes.ts';
-
-export * from './render-ast-file.ts';

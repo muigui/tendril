@@ -1,0 +1,54 @@
+{
+  "name": "@muigui/tendril-api",
+  "author": "Christos Constandinou <christos@muigui.com> (https://github.com/constantology)",
+  "description": "muigui | Tendril | API",
+  "license": "Apache-2.0",
+  "maintainers": [
+    {
+      "email": "christos@muigui.com",
+      "name": "Christos Constandinou",
+      "url": "https://github.com/constantology"
+    }
+  ],
+  "type": "module",
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf coverage dist node_modules tsconfig.tsbuildinfo",
+    "lint": "eslint --config eslint.config.js --report-unused-disable-directives ./src",
+    "lint:fix": "lint-staged --verbose",
+    "lint:fix:all": "npm run lint -- --fix",
+    "postbuild": "rm -rf tsconfig.tsbuildinfo",
+    "pretest": "rm -rf coverage && mkdir -p coverage",
+    "test": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout src/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}"
+  },
+  "dependencies": {
+    "@muigui/tendril": "1.x.x"
+  },
+  "devDependencies": {
+    "@muigui/code-style": "^1.0.3",
+    "@muigui/tendril-test-utils": "1.x.x"
+  },
+  "engines": {
+    "node": ">=24.13.1",
+    "npm": ">=11.8.0"
+  },
+  "packageManager": "npm@11.8.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/muigui/tendril.git"
+  },
+  "lint-staged": {
+    "./src/**/*.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}": "eslint --config eslint.config.js --fix --report-unused-disable-directives"
+  }
+}

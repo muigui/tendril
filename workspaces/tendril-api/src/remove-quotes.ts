@@ -1,19 +1,14 @@
 import {
-  getLangData,
-  type Language,
-} from '../i18n/index.ts';
-import {
   type ASTNode,
-
-  SpanNode,
-  TOKEN_NODE_TYPE,
-  TokenNode,
-} from '../node/index.ts';
-import {
+  type Language,
   type RawTextValue,
 
+  getLangData,
+  SpanNode,
   TextDocumentParser,
-} from '../parser/index.ts';
+  TOKEN_NODE_TYPE,
+  TokenNode,
+} from '@muigui/tendril';
 
 /**
  * Returns a new AST with all quoted text — including the surrounding quote
