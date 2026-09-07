@@ -1,14 +1,16 @@
 import {
   writeFileSync,
 } from 'node:fs';
+import {
+  join,
+} from 'node:path';
 
 import type {
   ASTNode,
 } from '@muigui/tendril';
-
 import {
   getFixturePath,
-} from './files.ts';
+} from '@muigui/tendril-test-fixtures';
 
 export function writeFileBasedOnContents(fileName: string, data: ASTNode | object | string, lang = `en`) {
   // @ts-ignore: Ignore TS2339. I'm not going out of my way to make TS happy here. Sorry...
@@ -22,7 +24,7 @@ export function writeFileBasedOnContents(fileName: string, data: ASTNode | objec
     : ``;
 
   writeFileSync(
-    getFixturePath(fileName, lang),
+    getFixturePath(join(lang, fileName)),
     `${content}${EOF}`,
     `utf8`,
   );

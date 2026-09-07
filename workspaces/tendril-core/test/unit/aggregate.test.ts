@@ -19,11 +19,10 @@ import {
   TOKEN_AGGREGATION_NODE_CATEGORY,
   TokenAggregationNode,
 } from '@muigui/tendril';
-
 import {
   Files,
   readFileContents,
-} from '../utils/index.ts';
+} from '@muigui/tendril-test-utils';
 
 async function parse(text: string, aggregate: AggregationConfig = true) {
   return TextDocumentParser.new({

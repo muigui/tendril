@@ -17,14 +17,12 @@ import {
   LINE_SEPARATOR,
   TextDocumentParser,
 } from '@muigui/tendril';
-
-import URLs from '../fixtures/URLs.json' with { type: 'json' };
-
+import URLs from '@muigui/tendril-test-fixtures/URLs' with { type: 'json' };
 import {
   // compareLineByLine,
   // Files,
   readFileContents,
-} from '../utils/index.ts';
+} from '@muigui/tendril-test-utils';
 
 const isCI = env.CI === `true`;
 // [CC] TODO: The lines feed issues in CI/CD are most likely to do with the GIT

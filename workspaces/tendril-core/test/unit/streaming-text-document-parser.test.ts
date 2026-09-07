@@ -27,11 +27,10 @@ import {
   renderASTFile,
   StreamingTextDocumentParser,
 } from '@muigui/tendril';
-
 import {
   compareLineByLine,
   Files,
-} from '../utils/index.ts';
+} from '@muigui/tendril-test-utils';
 
 const isCI = env.CI === `true`;
 const LANG = `en`;

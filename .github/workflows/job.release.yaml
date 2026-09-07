@@ -50,7 +50,7 @@ on:
       paths_released:
         description: |
           JSON array of workspace paths that got a release created this run
-          (e.g. `["workspaces/tendril-library"]`), or `[]` if release-please
+          (e.g. `["workspaces/tendril-core"]`), or `[]` if release-please
           only opened/updated a release PR without merging.
         value: ${{ jobs.release.outputs.paths_released }}
 

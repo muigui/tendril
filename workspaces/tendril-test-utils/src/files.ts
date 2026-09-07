@@ -9,17 +9,17 @@ import {
   basename,
   extname,
   join,
-  resolve,
 } from 'node:path';
-import {
-  cwd,
-} from 'node:process';
 import {
   after,
 } from 'node:test';
 import {
   URL,
 } from 'node:url';
+
+import {
+  getFixturePath as getTestFixturePath,
+} from '@muigui/tendril-test-fixtures';
 
 export const EXT = {
   AST_JSON: `.ast.json`,
@@ -86,7 +86,7 @@ export function getASTPathFromURL(url: string, extension: VALID_AST_EXTENSION, l
 }
 
 export function getFixturePath(fileName: string, lang = `en`) {
-  return resolve(cwd(), `test`, `fixtures`, lang, fileName);
+  return getTestFixturePath(join(lang, fileName));
 }
 
 export function getQuotesRemovedPath(fileName: string, lang = `en`, full = false) {
