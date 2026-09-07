@@ -1,5 +1,5 @@
 {
-  "workspaces/tendril-core": "1.0.2",
-  "workspaces/tendril-test-fixtures": "0.0.0",
-  "workspaces/tendril-test-utils": "0.0.0"
+  "workspaces/tendril-core": "1.0.3",
+  "workspaces/tendril-test-fixtures": "1.0.0",
+  "workspaces/tendril-test-utils": "1.0.0"
 }
