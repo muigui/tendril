@@ -48,21 +48,30 @@ export async function renderASTFile(stream: FileHandle, lang: string, file: stri
   for await (const line of stream.readLines()) {
     ASTNode.loadItem(ast, JSON.parse(line));
 
-    const node = ast.last;
+    const node = ast.last!;
 
     // We're keeping track of whether we're in a quote so that we don't render
     //   and append until we are not in a situation where we have overlaps of
     //   unbound nodes and block nodes.
     if (node.type === `unbound`) {
+      // @ts-ignore: Ignore TS2339. It really does not matter whether a property
+      //               exists on an object that does, or not!
+      //             That's the whole entire point of the `if` statement!
       if (node.action === `new`) {
         ++quotes;
       }
+      // @ts-ignore: Ignore TS2339. It really does not matter whether a property
+      //               exists on an object that does, or not!
+      //             That's the whole entire point of the `if` statement!
       else if (node.action === `end`) {
         --quotes;
       }
     }
 
     // And here is where we check whether we're dealing with the overlap and only dump if we aren't.
+    // @ts-ignore: Ignore TS2339. It really does not matter whether a property
+    //               exists on an object that does, or not!
+    //             That's the whole entire point of the `if` statement!
     if (!quotes && node.type === `block` && node.action === `end`) {
       await appendAndClear(file, ast);
     }
