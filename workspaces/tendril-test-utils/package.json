@@ -30,9 +30,9 @@
   },
   "dependencies": {
     "@hapi/address": "^5.1.1",
-    "libphonenumber-js": "^1.13.12",
-    "@muigui/tendril": "^1.0.2",
-    "@muigui/tendril-test-fixtures": "^0.x.x"
+    "@muigui/tendril": "1.x.x",
+    "@muigui/tendril-test-fixtures": "1.x.x",
+    "libphonenumber-js": "^1.13.12"
   },
   "devDependencies": {
     "@muigui/code-style": "^1.0.3"
