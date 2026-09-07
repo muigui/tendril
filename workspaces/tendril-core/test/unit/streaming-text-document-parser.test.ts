@@ -20,10 +20,9 @@ import {
 } from 'node:timers/promises';
 
 import {
-  getLangData,
-  LINE_SEPARATOR,
   type NodeSetNodesData,
 
+  LINE_SEPARATOR,
   renderASTFile,
   StreamingTextDocumentParser,
 } from '@muigui/tendril';
