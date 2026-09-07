@@ -13,11 +13,10 @@ import {
   getLangData,
   TextDocumentParser,
 } from '@muigui/tendril';
-
 import {
   Files,
   readFileContents,
-} from '../utils/index.ts';
+} from '@muigui/tendril-test-utils';
 
 const LANG = `en`;
 
