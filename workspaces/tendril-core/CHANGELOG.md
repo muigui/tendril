@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/muigui/tendril/compare/tendril-v1.0.3...tendril-v1.0.4) (2026-09-07)
+
+
+### Code Refactoring
+
+* move API from `tendril-core` into its own workspace ([#12](https://github.com/muigui/tendril/issues/12)) ([e23688c](https://github.com/muigui/tendril/commit/e23688cb8527407eeeee2464ff472b0b8ee5a93c))
+
 ## [1.0.3](https://github.com/muigui/tendril/compare/tendril-v1.0.2...tendril-v1.0.3) (2026-09-07)
 
 
