@@ -48,8 +48,8 @@
   },
   "devDependencies": {
     "@muigui/code-style": "^1.0.3",
-    "@muigui/tendril-test-fixtures": "^0.x.x",
-    "@muigui/tendril-test-utils": "^0.x.x"
+    "@muigui/tendril-test-fixtures": "1.x.x",
+    "@muigui/tendril-test-utils": "1.x.x"
   },
   "engines": {
     "node": ">=24.13.1",
