@@ -20,6 +20,7 @@
     "lint:fix": "npm run lint:fix --if-present --workspaces",
     "lint:fix:all": "npm run lint:fix:all --if-present --workspaces",
     "postws:clean:install": "npm run build",
+    "preclean": "rm -rf node_modules",
     "prews:clean:install": "npm run clean",
     "test": "npm run test --if-present --workspaces",
     "ws:ci": "npm run ws:clean-install",
@@ -58,6 +59,7 @@
   "workspaces": [
     "./workspaces/tendril-core",
     "./workspaces/tendril-test-fixtures",
-    "./workspaces/tendril-test-utils"
+    "./workspaces/tendril-test-utils",
+    "./workspaces/tendril-api"
   ]
 }

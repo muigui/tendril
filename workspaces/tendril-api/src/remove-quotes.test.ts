@@ -7,12 +7,11 @@ import {
 } from 'node:test';
 
 import {
-  RemoveQuotes,
-} from '@muigui/tendril';
-import {
   Files,
   readFileContents,
 } from '@muigui/tendril-test-utils';
+
+import * as RemoveQuotes from './remove-quotes.ts';
 
 const LANG = `en`;
 

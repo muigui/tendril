@@ -1,14 +1,11 @@
 import {
   type ASTNode,
-
-  TokenAggregationNode,
-  TokenNode,
-} from '../node/index.ts';
-import {
   type RawTextValue,
 
   TextDocumentParser,
-} from '../parser/index.ts';
+  TokenAggregationNode,
+  TokenNode,
+} from '@muigui/tendril';
 
 /**
  * Tests a single token value against the redaction dictionary.
