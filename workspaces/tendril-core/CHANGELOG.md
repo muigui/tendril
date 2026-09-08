@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/muigui/tendril/compare/tendril-v1.0.4...tendril-v1.0.5) (2026-09-08)
+
+
+### Bug Fixes
+
+* various fixes ([#14](https://github.com/muigui/tendril/issues/14)) ([cf9b459](https://github.com/muigui/tendril/commit/cf9b4599f97be5b8d148b2a726262b8d43db4aa9))
+
 ## [1.0.4](https://github.com/muigui/tendril/compare/tendril-v1.0.3...tendril-v1.0.4) (2026-09-07)
 
 
