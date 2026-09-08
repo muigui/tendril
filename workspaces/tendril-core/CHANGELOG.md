@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/muigui/tendril/compare/tendril-v1.0.5...tendril-v1.0.6) (2026-09-08)
+
+
+### Code Refactoring
+
+* types in `utils` that caused the JetBrains IDE to become confused by what is actually a type and what isn't ([#16](https://github.com/muigui/tendril/issues/16)) ([e0166d5](https://github.com/muigui/tendril/commit/e0166d598f70baac67d46bc25bc0d09e0ca4c8e6))
+
 ## [1.0.5](https://github.com/muigui/tendril/compare/tendril-v1.0.4...tendril-v1.0.5) (2026-09-08)
 
 
