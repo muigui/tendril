@@ -77,9 +77,9 @@ export function configureLanguage({
   /** Regular expression for splitting text into paragraphs */
   paragraphSplit?: Language[`paragraphSplit`];
   quotes:
-    /** Array of valid quote pairs as tuples */
-    & Partial<Pick<Quotes, `tuplesMismatched`>>
     /** Array of mismatched quote pairs as tuples */
+    & Partial<Pick<Quotes, `tuplesMismatched`>>
+    /** Array of valid quote pairs as tuples */
     & Pick<Quotes, `tuples`>;
   /** Regular expression for trailing punctuation to trim from a detected value */
   trailingPunctuation?: Language[`trailingPunctuation`];
