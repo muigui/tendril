@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/muigui/tendril/compare/tendril-test-utils-v1.0.1...tendril-test-utils-v1.0.2) (2026-09-08)
+
+
+### Bug Fixes
+
+* various fixes ([#14](https://github.com/muigui/tendril/issues/14)) ([cf9b459](https://github.com/muigui/tendril/commit/cf9b4599f97be5b8d148b2a726262b8d43db4aa9))
+
 ## [1.0.1](https://github.com/muigui/tendril/compare/tendril-test-utils-v1.0.0...tendril-test-utils-v1.0.1) (2026-09-07)
 
 
