@@ -82,9 +82,10 @@ export function fromAST(lang: Language, source: ASTNode) {
 export async function fromString(lang: string, text: RawTextValue) {
   const parser = TextDocumentParser.new(lang);
   const source = await parser.parse(text);
-  const ast = fromAST(parser.lang, source);
 
-  return ast;
+  // const ast = fromAST(parser.lang, source);
+  return fromAST(parser.lang, source);
+  // return ast;
   // return ast.render();
 }
 
@@ -93,7 +94,7 @@ export async function fromString(lang: string, text: RawTextValue) {
  *   characters.
  *
  * Configures the {@link TextDocumentParser} with `handleMismatchedQuotes: true`
- *   so that, for example, a `“…"` pair is still recognised as a quote span and
+ *   so that, for example, a `“…"` pair is still recognized as a quote span and
  *   removed.
  *
  * @param lang - Language code used to parse the text (e.g. `'en'`, `'en-US'`).
@@ -106,8 +107,9 @@ export async function fromStringWithMismatchedQuotes(lang: string, text: RawText
     lang: getLangData(lang),
   });
   const source = await parser.parse(text);
-  const ast = fromAST(parser.lang, source);
 
-  return ast;
+  // const ast = fromAST(parser.lang, source);
+  return fromAST(parser.lang, source);
+  // return ast;
   // return ast.render();
 }

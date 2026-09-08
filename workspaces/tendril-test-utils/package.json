@@ -29,10 +29,8 @@
     "test": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout src/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}"
   },
   "dependencies": {
-    "@hapi/address": "^5.1.1",
     "@muigui/tendril": "1.x.x",
-    "@muigui/tendril-test-fixtures": "1.x.x",
-    "libphonenumber-js": "^1.13.12"
+    "@muigui/tendril-test-fixtures": "1.x.x"
   },
   "devDependencies": {
     "@muigui/code-style": "^1.0.3"

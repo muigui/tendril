@@ -10,7 +10,7 @@ import {
 /**
  * Tests a single token value against the redaction dictionary.
  *
- * Each individual token value is tested in turn; `dict.some(...)` stops at the
+ * Each token value is tested in turn; `dict.some(...)` stops at the
  *   first hit. String entries are matched exactly (`===`) while {@link RegExp}
  *   entries are matched with `RegExp.prototype.test`.
  *
@@ -110,8 +110,9 @@ export function fromAST(source: ASTNode, dict: Array<RegExp | string>, redactCha
 export async function fromString(lang: string, text: RawTextValue, dict: Array<RegExp | string>, redactChar = `█`) {
   const parser = TextDocumentParser.new(lang);
   const source = await parser.parse(text);
-  const ast = fromAST(source, dict, redactChar);
 
-  return ast;
+  // const ast = fromAST(source, dict, redactChar);
+  return fromAST(source, dict, redactChar);
+  // return ast;
   // return ast.render();
 }

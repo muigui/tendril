@@ -267,6 +267,8 @@ export abstract class StreamParser extends ContextParser<ASTContext> {
 
       this.#temp = ``;
 
+      // FYI: This function cannot be made `async`, without messing a lot of other stuff up!
+      //   ∴: We do not use `async`/`await`, and instead fall back to `.then()`/`.catch()`...
       this.parse(text)
         .then(() => {})
         .catch(() => {});
