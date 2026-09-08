@@ -1,4 +1,5 @@
 {
+  "workspaces/tendril-api": "0.0.0",
   "workspaces/tendril-core": "1.0.4",
   "workspaces/tendril-test-fixtures": "1.0.0",
   "workspaces/tendril-test-utils": "1.0.1"
