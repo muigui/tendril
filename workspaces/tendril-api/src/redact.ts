@@ -9,14 +9,14 @@ import {
   TokenNode,
 } from '@muigui/tendril';
 
-function isRedacted(value: string, dict: Array<RegExp | string>) {
+function needsRedacting(value: string, dict: Array<RegExp | string>) {
   return dict.some(item => (typeof item === `string`
     ? value === item
     : item.test(value)));
 }
 
 function redactToken(token: TokenNode, dict: Array<RegExp | string>, redactChar: string) {
-  if (isRedacted(token.value, dict)) {
+  if (needsRedacting(token.value, dict)) {
     token.meta!.original_value = token.value;
     token.value = redactChar.repeat(token.char_count);
   }
@@ -27,7 +27,7 @@ function redactToken(token: TokenNode, dict: Array<RegExp | string>, redactChar:
 export function fromAST(source: NodeArray<ValidNodes>, dict: Array<RegExp | string>, redactChar = `█`) {
   // Shallow clone, as we want to conditionally include nodes, based on whether they are in a quote.
   // const ast = source.clone(true);
-  const ast = source.clone();
+  const ast = source.clone(true);
 
   for (const node of source) {
     // A `TokenAggregationNode` is also a `TokenNode`, so it must be matched
