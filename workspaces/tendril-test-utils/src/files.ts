@@ -16,10 +16,15 @@ import {
 import {
   URL,
 } from 'node:url';
+import {
+  debuglog,
+} from 'node:util';
 
 import {
   getFixturePath as getTestFixturePath,
 } from '@muigui/tendril-test-fixtures';
+
+const debug = debuglog(`tendril:test`);
 
 export const EXT = {
   AST_JSON: `.ast.json`,
@@ -31,15 +36,16 @@ export const EXT = {
 } as const;
 export const TEMP_DIR = await mkdtemp(join(tmpdir(), `tendril-unit-test-output-dir-`));
 
-// Uncomment this, if you want to see where the files are being generated to
-// console.log(`####### <TEMP_DIR: ${TEMP_DIR} /> #######`);
+if (debug.enabled) {
+  console.log(`####### <TEMP_DIR: ${TEMP_DIR} /> #######`);
+}
 
 after(async () => {
-  // Comment this out, to prevent the above `TEMP_DIR` from being deleted after its tests have ended.
-  // This is handy for debugging code and to better understand the parsed AST documents.
-  await rm(TEMP_DIR, {
-    recursive: true,
-  });
+  if (!debug.enabled) {
+    await rm(TEMP_DIR, {
+      recursive: true,
+    });
+  }
 });
 
 type VALID_AST_EXTENSION =
@@ -107,4 +113,11 @@ export function getRedactedPath(fileName: string, lang = `en`, full = false) {
 
 export function getRenderedPath(fileName: string, lang = `en`) {
   return join(TEMP_DIR, `${lang}.${fileName}`);
+}
+
+export function getRenderedPathFromURL(url: string, lang = `en`) {
+  const uri = new URL(url);
+  const file = basename(uri.pathname, extname(uri.pathname));
+
+  return getRenderedPath(file, lang);
 }

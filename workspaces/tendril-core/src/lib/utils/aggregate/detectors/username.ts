@@ -17,12 +17,6 @@ import {
 //   "+", or "-") or a chained "@".
 const USERNAME_PATTERN = new RegExp(String.raw`(?<![${WORD_CHARS}@.+-])@[${WORD_CHARS}]+`, `gu`);
 
-/**
- * Detects @-mentions: an `@` followed by word characters, with a lookbehind that
- *   prevents matching the `@` inside an email address or mid-word.
- *
- * @see {@link AggregationDetector}
- */
 export default {
   category: TOKEN_AGGREGATION_NODE_CATEGORY.USERNAME,
   priority: 200,

@@ -26,7 +26,7 @@
     "lint:fix:all": "npm run lint -- --fix",
     "postbuild": "rm -rf tsconfig.tsbuildinfo",
     "pretest": "rm -rf coverage && mkdir -p coverage",
-    "test": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout src/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}"
+    "test": "node --experimental-strip-types --experimental-test-coverage --test --test-force-exit --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout src/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}"
   },
   "dependencies": {
     "@muigui/tendril": "1.x.x"

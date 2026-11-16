@@ -18,58 +18,87 @@ import {
   suite,
   test,
 } from 'node:test';
+import {
+  debuglog,
+} from 'node:util';
 
 import {
   compareLineByLine,
 } from './index.ts';
 
+const debug = debuglog(`tendril:test`);
+
 suite(`@muigui/tendril-test-utils > compareLineByLine`, () => {
-  let dir: string;
+  let TEMP_DIR: string;
 
   before(async () => {
-    dir = await mkdtemp(join(tmpdir(), `tendril-test-utils-compare-line-by-line-`));
+    TEMP_DIR = await mkdtemp(join(tmpdir(), `tendril-test-utils-compare-line-by-line-`));
+
+    if (debug.enabled) {
+      console.log(`####### <TEMP DIRECTORY: ${TEMP_DIR} /> #######`);
+    }
   });
 
   after(async () => {
-    await rm(dir, {
-      recursive: true,
-    });
+    if (!debug.enabled) {
+      await rm(TEMP_DIR, {
+        recursive: true,
+      });
+    }
   });
 
   test(`resolves when both files match, line by line`, async () => {
     const contents = `line one\nline two\nline three`;
-    const fileA = join(dir, `identical-a.txt`);
-    const fileB = join(dir, `identical-b.txt`);
+    const fileA = join(TEMP_DIR, `identical-a.txt`);
+    const fileB = join(TEMP_DIR, `identical-b.txt`);
 
     await Promise.all([
       writeFile(fileA, contents, `utf8`),
       writeFile(fileB, contents, `utf8`),
     ]);
 
-    await assert.doesNotReject(compareLineByLine(fileA, fileB));
+    const diffs = await compareLineByLine({
+      original: fileA,
+      rendered: fileB,
+      testMode: true,
+    });
+
+    assert.equal(diffs?.length, 0);
   });
 
   test(`rejects when a line differs between the two files`, async () => {
-    const fileA = join(dir, `mismatched-a.txt`);
-    const fileB = join(dir, `mismatched-b.txt`);
+    const fileA = join(TEMP_DIR, `mismatched-a.txt`);
+    const fileB = join(TEMP_DIR, `mismatched-b.txt`);
 
     await Promise.all([
       writeFile(fileA, `line one\nline two`, `utf8`),
       writeFile(fileB, `line one\nline TWO`, `utf8`),
     ]);
 
-    await assert.rejects(compareLineByLine(fileA, fileB));
+    const diffs = await compareLineByLine({
+      original: fileA,
+      rendered: fileB,
+      testMode: true,
+    });
+
+    assert.ok((diffs?.length ?? 0) > 0);
   });
 
   test(`rejects when one file has more lines than the other`, async () => {
-    const fileA = join(dir, `short.txt`);
-    const fileB = join(dir, `long.txt`);
+    const fileA = join(TEMP_DIR, `short.txt`);
+    const fileB = join(TEMP_DIR, `long.txt`);
 
     await Promise.all([
       writeFile(fileA, `line one`, `utf8`),
       writeFile(fileB, `line one\nline two`, `utf8`),
     ]);
 
-    await assert.rejects(compareLineByLine(fileA, fileB));
+    const diffs = await compareLineByLine({
+      original: fileA,
+      rendered: fileB,
+      testMode: true,
+    });
+
+    assert.ok((diffs?.length ?? 0) > 0);
   });
 });

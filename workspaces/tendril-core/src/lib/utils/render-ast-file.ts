@@ -4,94 +4,89 @@ import {
   appendFile,
   writeFile,
 } from 'node:fs/promises';
-// import type {
-//   PassThrough,
-// } from 'node:stream';
+import {
+  debuglog,
+} from 'node:util';
 
 import {
-  getLangData,
-} from '../i18n/index.ts';
-import {
-  ASTNode,
+  type IValidNodes,
+  type Nodes,
+  type ValidNodes,
+
+  NodeArray,
+  SpanNode,
 } from '../node/index.ts';
 
-/**
- * Renders a line-delimited stream of AST nodes back into text, written to a file.
- *
- * `stream` is assumed to be a newline-delimited (NDJSON) stream of serialized AST
- *   nodes — the format produced by the streaming parsers. Each line is loaded
- *   into a working {@link ASTNode}, and nodes are buffered until a complete,
- *   renderable chunk has been accumulated: rendering is deferred while inside an
- *   `unbound` (quote) span so that quotes overlapping block boundaries are not
- *   split mid-render. Whenever the buffer reaches the `end` of a `block` node and
- *   no quote is open, the buffered nodes are rendered and appended to `file`,
- *   then cleared. Any remaining nodes are flushed once the stream is exhausted.
- *
- * The target `file` is truncated before writing begins.
- *
- * @param stream - An open {@link FileHandle} yielding one serialized AST node per line.
- * @param lang - Language code used to seed the working AST's direction and id.
- * @param file - Path of the output file that rendered text is appended to.
- * @returns A promise that resolves once the whole stream has been rendered.
- */
-export async function renderASTFile(stream: FileHandle, lang: string, file: string) {
-  const i18n = getLangData(lang);
-  const ast = ASTNode.new({
-    dir: i18n.dir,
-    lang: i18n.id,
-  });
+const debug = debuglog(`tendril:utils:render-ast-file`);
 
-  let quotes = 0;
+export async function renderASTFile(stream: FileHandle, file: string) {
+  const ast = new NodeArray<ValidNodes>();
+
+  let spans = 0;
+  let unbound = 0;
 
   await writeFile(file, ``, `utf8`);
+  debug(`Ensure file is empty:    ${file}`);
 
   for await (const line of stream.readLines()) {
-    ASTNode.loadItem(ast, JSON.parse(line));
+    const raw = JSON.parse(line) as IValidNodes;
+    const node = NodeArray.toNode(raw);
 
-    const node = ast.last!;
+    if (node !== null) {
+      ast.load({
+        append: true,
+        nodes: [ node ] as Nodes,
+        reindex: false,
+      });
 
-    // We're keeping track of whether we're in a quote so that we don't render
-    //   and append until we are not in a situation where we have overlaps of
-    //   unbound nodes and block nodes.
-    if (node.type === `unbound`) {
-      // @ts-ignore: Ignore TS2339. It really does not matter whether a property
-      //               exists on an object that does, or not!
-      //             That's the whole entire point of the `if` statement!
-      if (node.action === `new`) {
-        ++quotes;
-      }
-      // @ts-ignore: Ignore TS2339. It really does not matter whether a property
-      //               exists on an object that does, or not!
-      //             That's the whole entire point of the `if` statement!
-      else if (node.action === `end`) {
-        --quotes;
+      // We're keeping track of whether we're in a quote so that we don't render
+      //   and append until we are not in a situation where we have overlaps of
+      //   unbound nodes and block nodes.
+      if (node instanceof SpanNode) {
+        if (node.type === `unbound`) {
+          if (node.action === `new`) {
+            ++unbound;
+          }
+          else if (node.action === `end`) {
+            --unbound;
+          }
+        }
+        else if (![ `document`, `line` ].includes(node.category)) {
+          if (node.action === `new`) {
+            ++spans;
+          }
+          else if (node.action === `end`) {
+            --spans;
+          }
+        }
       }
     }
 
     // And here is where we check whether we're dealing with the overlap and only dump if we aren't.
-    // @ts-ignore: Ignore TS2339. It really does not matter whether a property
-    //               exists on an object that does, or not!
-    //             That's the whole entire point of the `if` statement!
-    if (!quotes && node.type === `block` && node.action === `end`) {
+    // if (!quotes && !ast.empty) {
+    if (!spans && !unbound && !ast.empty) {
+      if (ast.length > 50_000) {
+        debug(`Appending to file:       ${ast.length} nodes`);
+      }
+
       await appendAndClear(file, ast);
     }
   }
 
   // Finally, we check if the AST has any remaining nodes.
   if (!ast.empty) {
+    if (ast.length > 50_000) {
+      debug(`Final appending to file: ${ast.length} nodes`);
+    }
+
     // And append them if it does.
     await appendAndClear(file, ast);
   }
+
+  debug(`File rendered:           ${file}`);
 }
 
-/**
- * Renders the buffered AST, appends the text to `file`, then clears the buffer.
- *
- * @param file - Path of the output file to append rendered text to.
- * @param ast - The working AST whose buffered nodes are rendered and then cleared.
- * @returns A promise that resolves once the rendered text has been appended.
- */
-async function appendAndClear(file: string, ast: ASTNode) {
+async function appendAndClear(file: string, ast: NodeArray<ValidNodes>) {
   await appendFile(file, ast.render(), `utf8`);
 
   ast.clear();

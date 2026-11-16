@@ -1,32 +1,15 @@
 import {
-  type ASTNode,
   type Language,
+  type NodeArray,
   type RawTextValue,
 
-  getLangData,
   SpanNode,
-  TextDocumentParser,
+  StringParser,
   TOKEN_NODE_TYPE,
   TokenNode,
 } from '@muigui/tendril';
 
-/**
- * Returns a new AST with all quoted text — including the surrounding quote
- *   characters — removed.
- *
- * Iterates over `source` and adds each node to a fresh clone, skipping any node
- *   encountered while inside an `unbound:quote` span (tracked with a depth
- *   counter so nested quotes are handled). When a `block:paragraph` marker is
- *   dropped because it fell inside a quote, a whitespace {@link TokenNode}
- *   carrying the language's line separator is inserted in its place to preserve
- *   spacing between the surrounding text.
- *
- * @param lang - The resolved {@link Language} used for the line separator and
- *   direction of any inserted whitespace tokens.
- * @param source - The source AST to strip quotes from. It is not mutated.
- * @returns A new, re-indexed {@link ASTNode} with quoted spans removed.
- */
-export function fromAST(lang: Language, source: ASTNode) {
+export function fromAST(lang: Language, source: NodeArray) {
   // Shallow clone, as we want to conditionally include nodes, based on whether they are in a quote.
   const ast = source.clone(true);
 
@@ -47,17 +30,6 @@ export function fromAST(lang: Language, source: ASTNode) {
     }
 
     if (quotes > 0) {
-      // @ts-ignore: Ignore TS2339, for obvious reasons...
-      if (node.type === `block` && node?.category === `paragraph`) {
-        ast.add(TokenNode.new({
-          dir: lang.dir,
-          index: -1,
-          lang: lang.id,
-          type: TOKEN_NODE_TYPE.WHITESPACE,
-          value: lang.lineSeparator,
-        }));
-      }
-
       continue;
     }
 
@@ -69,18 +41,10 @@ export function fromAST(lang: Language, source: ASTNode) {
   return ast;
 }
 
-/**
- * Parses `text` into an AST and returns a new copy with quoted text removed.
- *
- * A convenience wrapper that parses `text` with a {@link TextDocumentParser} for
- *   the given language and then delegates to {@link fromAST}.
- *
- * @param lang - Language code used to parse the text (e.g. `'en'`, `'en-US'`).
- * @param text - The raw text (or array of paragraphs) to parse and strip.
- * @returns A promise resolving to a new {@link ASTNode} with quoted spans removed.
- */
 export async function fromString(lang: string, text: RawTextValue) {
-  const parser = TextDocumentParser.new(lang);
+  const parser = StringParser.new({
+    lang,
+  });
   const source = await parser.parse(text);
 
   // const ast = fromAST(parser.lang, source);
@@ -89,22 +53,10 @@ export async function fromString(lang: string, text: RawTextValue) {
   // return ast.render();
 }
 
-/**
- * Like {@link fromString}, but tolerant of mismatched opening/closing quote
- *   characters.
- *
- * Configures the {@link TextDocumentParser} with `handleMismatchedQuotes: true`
- *   so that, for example, a `“…"` pair is still recognized as a quote span and
- *   removed.
- *
- * @param lang - Language code used to parse the text (e.g. `'en'`, `'en-US'`).
- * @param text - The raw text (or array of paragraphs) to parse and strip.
- * @returns A promise resolving to a new {@link ASTNode} with quoted spans removed.
- */
 export async function fromStringWithMismatchedQuotes(lang: string, text: RawTextValue) {
-  const parser = TextDocumentParser.new({
+  const parser = StringParser.new({
     handleMismatchedQuotes: true,
-    lang: getLangData(lang),
+    lang,
   });
   const source = await parser.parse(text);
 

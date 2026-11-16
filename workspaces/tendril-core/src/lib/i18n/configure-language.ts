@@ -10,26 +10,6 @@ import {
   LINE_SEPARATOR,
 } from './types.ts';
 
-/**
- * Builds and registers a {@link Language} configuration.
- *
- * Merges the supplied settings with sensible defaults (apostrophes, line
- *   separator, paragraph split/join), constructs the {@link Quotes} lookup
- *   tables, wires up an {@link Intl.Segmenter}-backed segmenter, and binds the
- *   language helper functions (overriding any provided in `functions`). The
- *   result is stored in {@link AVAILABLE_LANGUAGES} under its `id` and returned.
- *
- * @returns The fully-built, registered {@link Language}.
- *
- * @example
- * ```typescript
- * configureLanguage({
- *   dir: LANGUAGE_DIRECTION.LTR,
- *   id: 'en',
- *   quotes: { tuples: [[ '"', '"' ], [ '‘', '’' ]] },
- * });
- * ```
- */
 export function configureLanguage({
   apostrophes = /^[\u0027\u2019]$/, // ' ’
   defaultRegion,
@@ -47,11 +27,8 @@ export function configureLanguage({
   //   Arabic, …) should override this per language.
   trailingPunctuation = /[.,;:!?'")\]}]+$/u,
 }: {
-  /** Regular expression for apostrophe characters */
   apostrophes?: Language[`apostrophes`];
-  /** Default region (ISO 3166-1 alpha-2) for national-format phone validation */
   defaultRegion?: Language[`defaultRegion`];
-  /** Language writing/reading direction (e.g. 'ltr' for English) */
   dir: Language[`dir`];
   functions?: Partial<
     Omit<
@@ -68,20 +45,13 @@ export function configureLanguage({
       | `trailingPunctuation`
     >
   >;
-  /** Language identifier (e.g. 'en' for English) */
   id: Language[`id`];
-  /** String used to store the new line character */
   lineSeparator?: Language[`lineSeparator`];
-  /** String used to join an array of paragraph strings into a single text document */
   paragraphJoin?: Language[`paragraphJoin`];
-  /** Regular expression for splitting text into paragraphs */
   paragraphSplit?: Language[`paragraphSplit`];
   quotes:
-    /** Array of mismatched quote pairs as tuples */
     & Partial<Pick<Quotes, `tuplesMismatched`>>
-    /** Array of valid quote pairs as tuples */
     & Pick<Quotes, `tuples`>;
-  /** Regular expression for trailing punctuation to trim from a detected value */
   trailingPunctuation?: Language[`trailingPunctuation`];
 }) {
   paragraphJoin ??= lineSeparator.repeat(2);
@@ -96,6 +66,12 @@ export function configureLanguage({
     paragraphSplit,
     quotes: configureLanguageQuotes(quotes.tuples, quotes.tuplesMismatched ?? []),
     segmentBy: Segmenter.create(id),
+    sentenceStops: [
+      `.`,
+      `!`,
+      `?`,
+      `‽`,
+    ],
     trailingPunctuation,
   };
 
@@ -111,17 +87,6 @@ export function configureLanguage({
   return AVAILABLE_LANGUAGES[id] = LANG as Language;
 }
 
-/**
- * Builds the {@link Quotes} lookup tables from opening/closing quote pairs.
- *
- * Derives the flat `opening`/`closing` arrays and a `tupleMap` that resolves
- *   either character of a pair back to the full tuple, alongside the original
- *   `tuples` and `tuplesMismatched`.
- *
- * @param tuples - Valid `[open, close]` quote pairs.
- * @param tuplesMismatched - Tolerated mismatched `[open, close]` pairs.
- * @returns The assembled {@link Quotes} configuration.
- */
 export function configureLanguageQuotes(
   tuples: Array<[string, string]>,
   tuplesMismatched: Array<[string, string]> = [],

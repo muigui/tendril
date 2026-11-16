@@ -1,74 +1,127 @@
 import type {
-  Segments,
+  SegmentContext,
+} from '../context/index.ts';
+import type {
+  ItemSegment,
+  ProcessableSegment,
 } from '../i18n/index.ts';
 import {
+  LineNode,
+  SentenceNode,
   TokenNode,
 } from '../node/index.ts';
-import type {
-  BaseState,
-} from '../state/index.ts';
 
 import {
   type ContextParserConfig,
 
   ContextParser,
 } from './context-parser.ts';
+import type {
+  StreamParser,
+} from './stream-parser.ts';
+import type {
+  StringParser,
+} from './string-parser.ts';
 import {
   type ENUM_SEGMENT_COMMAND_ACTIONS,
 
   SEGMENT_COMMAND_ACTIONS as ACTION,
 } from './types.ts';
 
-/** Configuration for a {@link SegmentParser}. */
-export interface SegmentParserConfig extends ContextParserConfig { }
+export interface SegmentParserConfig extends ContextParserConfig<SegmentContext, StreamParser | StringParser> { }
 
-/**
- * Innermost parser: decides what a single segment means and mutates the AST
- *   accordingly.
- *
- * Word-like segments become {@link TokenNode}s; quote characters open or close
- *   {@link QuoteNode} spans (including apostrophe-vs-quote disambiguation and, when
- *   enabled, mismatched-quote handling); everything else is appended as a token.
- */
-export class SegmentParser extends ContextParser<Segments[0]> {
-  /**
-   * Factory for a {@link SegmentParser}.
-   *
-   * @param config - Parser configuration.
-   * @returns A new {@link SegmentParser} instance.
-   */
+export class SegmentParser extends ContextParser<SegmentContext, StreamParser | StringParser> {
   static new(config: SegmentParserConfig) {
     return new SegmentParser(config);
   }
 
-  /**
-   * Classifies the current segment into a command action.
-   *
-   * Distinguishes word-like text, opening/closing quotes (matched, mismatched, or
-   *   an apostrophe used mid-word), and plain punctuation, so the caller knows
-   *   whether to append a token or open/close a quote.
-   *
-   * @param curr - The current segment.
-   * @param state - The shared parser state.
-   * @returns The command action to apply.
-   */
-  protected async getCommandAction(curr: Segments[0], state: BaseState): Promise<ENUM_SEGMENT_COMMAND_ACTIONS> {
+  constructor(config: SegmentParserConfig) {
+    super(config);
+  }
+
+  addNewLine() {
     const {
-      ctx: {
-        currentQuote: quote,
-        inQuote,
-      },
-      handleMismatchedQuotes,
+      parentCtx,
+    } = this.ctx;
+    const {
+      ast,
+      lang,
+      originalLineSeparator,
+    } = parentCtx!;
+
+    ast.add(LineNode.new({
+      lang: lang.id,
+      value: originalLineSeparator ?? lang.lineSeparator,
+    }));
+
+    return this;
+  }
+
+  async parseNode(ctx: SegmentContext, curr: ProcessableSegment) {
+    const {
+      parentCtx,
+    } = ctx;
+    const {
+      ast,
+    } = parentCtx!;
+
+    if (curr.isNewLineBreak) {
+      this.addNewLine();
+    }
+    else if (curr.isWordLike) {
+      ast.add(TokenNode.fromSegment(curr as ItemSegment, parentCtx!));
+    }
+    else {
+      const command = await this.getCommandAction(curr, ctx);
+
+      // eslint-disable-next-line default-case
+      switch (command) {
+        case ACTION.APPEND_TOKEN:
+          ast.add(TokenNode.fromSegment(curr as ItemSegment, parentCtx));
+
+          break;
+        case ACTION.QUOTE_OPEN:
+          parentCtx!.openQuote(curr.segment, curr.index);
+
+          break;
+        case ACTION.QUOTE_CLOSE:
+          parentCtx!.closeQuote();
+
+          break;
+        case ACTION.QUOTE_CLOSE_MISMATCHED:
+          parentCtx!.closeQuote(curr.segment, true);
+
+          break;
+      }
+    }
+  }
+
+  protected async getCommandAction(
+    curr: ProcessableSegment,
+    ctx: SegmentContext,
+  ): Promise<ENUM_SEGMENT_COMMAND_ACTIONS> {
+    const {
       lang: {
         getTuple,
         isApostrophe,
-        isApostropheChar,
         isClosingQuote,
         isOpeningQuote,
         quotesMatch,
         quotesMismatched,
       },
-    } = state;
+      parentParser,
+    } = this;
+    const {
+      handleMismatchedQuotes,
+    } = parentParser!;
+    const {
+      parentCtx,
+    } = ctx;
+    const {
+      ast,
+      currentQuote: quote,
+      inQuote,
+    } = parentCtx!;
 
     // [CC] TODO: New stuff, when we get rid of `paragraphs`/`Segments[][]`
     // if (curr.isWordLike || isWhiteSpaceOnly(curr.segment, state)) {
@@ -82,7 +135,7 @@ export class SegmentParser extends ContextParser<Segments[0]> {
       return ACTION.APPEND_TOKEN;
     }
 
-    if (isClosingQuote(curr.segment, state)) {
+    if (isClosingQuote(curr.segment)) {
       if (inQuote) {
         if (quotesMatch(`${quote?.value}`, curr.segment)) {
           return ACTION.QUOTE_CLOSE;
@@ -93,13 +146,13 @@ export class SegmentParser extends ContextParser<Segments[0]> {
         }
       }
 
-      if (isApostrophe(curr.segment, state)) {
+      if (isApostrophe(curr.segment, ctx.$next as ItemSegment, ast.lastToken)) {
         return ACTION.APPEND_TOKEN;
       }
       else {
-        const tuple = getTuple(curr.segment, state);
+        const tuple = getTuple(curr.segment);
 
-        return isApostropheChar(curr.segment, state)
+        return isApostrophe(curr.segment, ctx?.$next as ItemSegment, ast.lastToken)
           ? ACTION.APPEND_TOKEN
           : tuple && tuple[0] === tuple[1]
             ? ACTION.QUOTE_OPEN
@@ -107,7 +160,7 @@ export class SegmentParser extends ContextParser<Segments[0]> {
       }
     }
 
-    if (isOpeningQuote(curr.segment, state)) {
+    if (isOpeningQuote(curr.segment)) {
       if (!inQuote || !quotesMatch(`${quote?.value}`, curr.segment)) {
         return ACTION.QUOTE_OPEN;
       }
@@ -116,37 +169,57 @@ export class SegmentParser extends ContextParser<Segments[0]> {
     return ACTION.APPEND_TOKEN;
   }
 
-  /**
-   * Applies the classified command action for the current segment: append a
-   *   token, or open/close a (possibly mismatched) quote.
-   *
-   * @param curr - The current segment.
-   * @param state - The shared parser state.
-   */
-  protected async onParse(curr: Segments[0], state: BaseState) {
+  protected async afterParse(ctx: SegmentContext) {
     const {
-      ctx,
-    } = state;
-    const command = await this.getCommandAction(curr, state);
+      parentCtx,
+    } = ctx;
+    const {
+      currentSpan,
+    } = parentCtx!;
 
-    // eslint-disable-next-line default-case
-    switch (command) {
-      case ACTION.APPEND_TOKEN:
-        ctx.append(TokenNode.fromSegment(curr, ctx));
-
-        break;
-      case ACTION.QUOTE_OPEN:
-        ctx.openQuote(curr.segment, curr.index);
-
-        break;
-      case ACTION.QUOTE_CLOSE:
-        ctx.closeQuote();
-
-        break;
-      case ACTION.QUOTE_CLOSE_MISMATCHED:
-        ctx.closeQuote(curr.segment, true);
-
-        break;
+    if (!ctx.isNewLineOnly && currentSpan && currentSpan.category === `sentence`) {
+      parentCtx!.closeSpan(currentSpan.end());
     }
+  }
+
+  protected async beforeParse(ctx: SegmentContext) {
+    const {
+      parentCtx,
+    } = ctx;
+    const {
+      lang: {
+        dir,
+        id: lang,
+      },
+    } = parentCtx!;
+
+    if (ctx.size > 1) {
+      parentCtx!.openSpan(SentenceNode.new({
+        action: `new`,
+        dir,
+        index: 0,
+        lang,
+      }));
+    }
+  }
+
+  protected async onParse(ctx: SegmentContext) {
+    const {
+      parentCtx,
+    } = ctx;
+    const {
+      ast,
+    } = parentCtx!;
+
+    for await (const curr of ctx) {
+      if (curr.isNewLineBreak && ctx.size === 1) {
+        this.addNewLine();
+      }
+      else {
+        await this.parseNode(ctx, curr);
+      }
+    }
+
+    return ast;
   }
 }

@@ -1,105 +1,111 @@
 import type {
+  RawTextValue,
+} from '../../types.ts';
+
+import {
   ASTContext,
 } from '../context/index.ts';
 import {
-  DocumentNode,
-} from '../node/index.ts';
+  getLangData,
+} from '../i18n/index.ts';
 import {
-  type Parsers,
-
-  SimpleState,
-} from '../state/index.ts';
+  DocumentNode,
+  ReferenceManager,
+} from '../node/index.ts';
 import {
   aggregateTokens,
   resolveCategories,
+  Segmenter,
 } from '../utils/index.ts';
 
 import {
-  ContextParser,
   type ContextParserConfig,
+
+  ContextParser,
 } from './context-parser.ts';
 import {
-  LineParser,
-} from './line-parser.ts';
-import {
-  SegmentsParser,
-} from './segments-parser.ts';
+  SegmentParser,
+} from './segment-parser.ts';
 import type {
   AggregationConfig,
-  RawTextValue,
+  ENUM_SENTENCE_SEGMENT_STYLE,
 } from './types.ts';
 
-/** Configuration for a {@link StringParser} (and its subclasses). */
-export interface StringParserConfig extends ContextParserConfig {
-  /** Token-aggregation opt-in (see {@link AggregationConfig}); defaults to off. */
+export interface StringParserConfig extends ContextParserConfig<ASTContext> {
   aggregate?: AggregationConfig;
-  /** When `true`, mismatched opening/closing quotes are still paired. */
   handleMismatchedQuotes?: boolean;
+  sentenceSegmentStyle?: ENUM_SENTENCE_SEGMENT_STYLE;
 }
 
-/**
- * Abstract base for parsers that consume a whole string (or array of paragraphs)
- *   in one pass and return the finished {@link ASTNode}.
- *
- * It drives the document → line pipeline against a {@link SimpleState}, wrapping
- *   the run in a {@link DocumentNode} span and, after parsing, normalizing line
- *   breaks and optionally aggregating multi-token values (URLs, emails, …).
- *   Subclasses ({@link TextDocumentParser}, {@link ASCIIArtParser}) choose the
- *   segment parser via {@link StringParser.getParsers | getParsers}.
- */
-export abstract class StringParser extends ContextParser<ASTContext> {
+export interface StringParserNewConfig extends Omit<StringParserConfig, `lang`> {
+  lang: string;
+}
+
+export class StringParser extends ContextParser<ASTContext> {
+  segmenter!: Segmenter;
+
   #aggregate: AggregationConfig;
   #handleMismatchedQuotes: boolean;
 
-  /**
-   * @param config - Parser configuration, including aggregation and
-   *   mismatched-quote options.
-   */
+  static new(config: StringParserNewConfig) {
+    const {
+      lang,
+      ...conf
+    } = config;
+
+    return new StringParser({
+      aggregate: true,
+      handleMismatchedQuotes: false,
+      ...conf,
+      lang: getLangData(lang),
+    });
+  }
+
   constructor(config: StringParserConfig) {
     super(config);
 
-    this.#aggregate = config.aggregate ?? false;
+    this.#aggregate = config.aggregate ?? true;
     this.#handleMismatchedQuotes = config.handleMismatchedQuotes ?? false;
+
+    this.init();
   }
 
-  /**
-   * Returns the finished AST from a completed parse state.
-   *
-   * Exposed as an overridable hook so subclasses can post-process the AST.
-   *
-   * @param state - The completed parse state.
-   * @returns The parsed {@link ASTNode}.
-   */
-  getASTNode(state: SimpleState) {
-    return state.ctx.ast;
+  get aggregate() {
+    return this.#aggregate;
   }
 
-  /**
-   * Parses `text` into a flat AST.
-   *
-   * @param text - The document string, or an array of paragraphs, to parse.
-   * @returns A promise resolving to the parsed {@link ASTNode}.
-   */
+  get handleMismatchedQuotes() {
+    return this.#handleMismatchedQuotes;
+  }
+
   async parse(text: RawTextValue) {
-    const state = await this.getState(text);
+    const {
+      ASTRefMgr,
+      lang,
+      originalLineSeparator,
+      refMgr,
+      segmenter,
+    } = this;
+    const ctx = ASTContext.new({
+      ASTRefMgr,
+      items: segmenter.segmentText(text),
+      lang: lang.id,
+      originalLineSeparator,
+      refMgr,
+      segmenter,
+    });
 
-    await this.parseContext(state.ctx, state);
-
-    return this.getASTNode(state);
+    return this.parseContext(ctx);
   }
 
-  /**
-   * Closes the document span, normalizes line breaks, and runs token aggregation
-   *   (or a plain re-index when aggregation is off).
-   *
-   * @param ctx - The AST context.
-   * @param _state - The parse state (unused).
-   */
-  protected async afterParse(ctx: ASTContext, _state: SimpleState) {
-    ctx.closeSpan();
+  reset() {
+    ReferenceManager.reset(this.ASTRefMgr);
+    ReferenceManager.reset(this.refMgr);
 
-    ctx.ast.updateNewLines(this.originalLineSeparator);
+    return this;
+  }
 
+  protected async afterParse(ctx: ASTContext) {
     const categories = resolveCategories(this.#aggregate);
 
     if (categories.length) {
@@ -110,18 +116,11 @@ export abstract class StringParser extends ContextParser<ASTContext> {
         ctx,
       });
     }
-    else {
-      ctx.ast.reindex();
-    }
+
+    ctx.closeSpan();
   }
 
-  /**
-   * Opens the outer {@link DocumentNode} span before parsing begins.
-   *
-   * @param ctx - The AST context.
-   * @param _state - The parse state (unused).
-   */
-  protected async beforeParse(ctx: ASTContext, _state: SimpleState) {
+  protected async beforeParse(ctx: ASTContext) {
     ctx.openSpan(DocumentNode.new({
       action: `new`,
       dir: this.lang.dir,
@@ -130,71 +129,49 @@ export abstract class StringParser extends ContextParser<ASTContext> {
     }));
   }
 
-  /**
-   * Builds the line and segments parsers for this parser's language.
-   *
-   * Subclasses override this to add the segment parser appropriate to their
-   *   dialect (plain text vs ASCII art).
-   *
-   * @returns The parser registry keyed by level (`document`, `line`, `segments`).
-   */
-  protected getParsers(): Parsers {
-    const {
-      lang,
-    } = this;
-    const line = LineParser.new({
-      lang,
-    });
-    const segments = new SegmentsParser({
-      lang,
-    });
+  protected init() {
+    super.init();
 
-    return {
-      // @ts-ignore: Ignore TS2322... Because I don't care...
-      document: this,
-      line,
-      segments,
-    };
-  }
-
-  /**
-   * Creates the {@link SimpleState} for a parse, normalizing the source line
-   *   separator to the language's own where they differ.
-   *
-   * @param value - The raw text (or paragraphs) to seed the state with.
-   * @returns A promise resolving to the initialized {@link SimpleState}.
-   */
-  protected async getState(value: RawTextValue) {
     const {
       lang,
       originalLineSeparator,
     } = this;
-    const parsers = this.getParsers();
 
-    return SimpleState.new({
-      aggregate: this.#aggregate,
-      handleMismatchedQuotes: this.#handleMismatchedQuotes,
+    this.ASTRefMgr = ReferenceManager.new({
+      getCacheID() {
+        return `ast`;
+      },
+      refIDProperty: `ast_id`,
+      refIndexProperty: `ast_index`,
+    });
+
+    this.segmenter = Segmenter.new({
       lang,
-      originalLineSeparator,
-      parsers,
-      // value,
-      value: originalLineSeparator !== lang.lineSeparator
-        ? `${value}`.replaceAll(originalLineSeparator, lang.lineSeparator)
-        : value,
+      lineSeparator: originalLineSeparator,
     });
   }
 
-  /**
-   * Iterates the document's lines, delegating each to the `line` parser.
-   *
-   * @param ctx - The AST context.
-   * @param state - The parse state.
-   */
-  protected async onParse(ctx: ASTContext, state: SimpleState) {
-    const lineParser = state.getParser(`line`);
+  // @ts-ignore Ignore TS2416. Because we are OVERWRITING!!!
+  protected async onParse(ctx: ASTContext) {
+    const {
+      ast,
+    } = ctx;
+    const {
+      lang,
+      originalLineSeparator,
+    } = this;
 
-    for await (const line of ctx) {
-      await lineParser.parseContext(line, state);
+    for await (const segmentCtx of ctx) {
+      const segmentParser = SegmentParser.new({
+        ctx: segmentCtx,
+        lang,
+        originalLineSeparator,
+        parentParser: this,
+      });
+
+      await segmentParser.parseContext(segmentCtx);
     }
+
+    return ast;
   }
 }

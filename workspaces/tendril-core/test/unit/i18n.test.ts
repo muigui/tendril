@@ -1,9 +1,6 @@
 import {
   strict as assert,
 } from 'node:assert';
-// import {
-//   writeFile,
-// } from 'node:fs/promises';
 import {
   env,
 } from 'node:process';
@@ -11,19 +8,20 @@ import {
   suite,
   test,
 } from 'node:test';
+import {
+  debuglog,
+} from 'node:util';
 
 import {
-  getLangData,
   LINE_SEPARATOR,
-  TextDocumentParser,
+  StringParser,
 } from '@muigui/tendril';
 import URLs from '@muigui/tendril-test-fixtures/URLs' with { type: 'json' };
 import {
-  // compareLineByLine,
-  // Files,
   readFileContents,
 } from '@muigui/tendril-test-utils';
 
+const debug = debuglog(`tendril:test:i18n`);
 const isCI = env.CI === `true`;
 // [CC] TODO: The lines feed issues in CI/CD are most likely to do with the GIT
 //              `core.autocrlf` setting. So, you probably want to fix that — guy face!
@@ -46,35 +44,26 @@ suite(`@muigui/tendril > Internationalization`, () => {
           // url: _,
         }) => {
           test(`Lang: ${lang.toLocaleUpperCase()}; Title: ${title};`, async () => {
-            const parser = TextDocumentParser.new({
+            const parser = StringParser.new({
               aggregate: true,
               handleMismatchedQuotes: true,
-              lang: getLangData(lang),
+              lang,
               originalLineSeparator: LINE_SEPARATOR[lineSeparator],
             });
             const expected = readFileContents(`${title}.original.txt`, lang);
+            const TIMER_LABEL_PARSE = `TIME -▶ i18n -▶ parse  -▶ ${lang}:${title}`;
+            const TIMER_LABEL_RENDER = `TIME -▶ i18n -▶ render -▶ ${lang}:${title}`;
+
+            console.time(TIMER_LABEL_PARSE);
+
             const ast = await parser.parse(expected);
+
+            console.timeEnd(TIMER_LABEL_PARSE);
+            console.time(TIMER_LABEL_RENDER);
+
             const actual = ast.render();
 
-            // <MOST-RECENT:STUFF>
-            //   const renderedFileName = Files.getRenderedPath(`${title}.txt`, lang);
-            //   const astFileName = Files.getASTJSONLPath(`${title}.original.txt`, lang, true);
-            //   await writeFile(astFileName, JSON.stringify(ast.toJSON()).replace(/\},\{/gm, `}\n{`), `utf8`);
-            //   await writeFile(renderedFileName, actual, `utf8`);
-            //   Comparing line-by-line allows us to avoid tests failing due to different line separators...
-            //   await compareLineByLine(Files.getFixturePath(`${title}.original.txt`, lang), renderedFileName);
-            // </MOST-RECENT:STUFF>
-
-            // <HELLA-OLDER:STUFF>
-            //   const originalFileName = Files.getRenderedPath(`${title}.original.txt`, lang);
-            //   await writeFile(originalFileName, expected.replaceAll(LINE_SEPARATOR[lineSeparator], parser.lang.lineSeparator), `utf8`);
-            //   if ([ `de` ].includes(lang)) {
-            //     console.log(`####### <${lang.toLocaleUpperCase()} => ${title}> #######`);
-            //     console.log(actual);
-            //     console.log(`####### </${lang.toLocaleUpperCase()} => ${title}> #######`);
-            //   }
-            //   await compareLineByLine(originalFileName, renderedFileName);
-            // </HELLA-OLDER:STUFF>
+            console.timeEnd(TIMER_LABEL_RENDER);
 
             assert.strictEqual(actual, expected);
           });

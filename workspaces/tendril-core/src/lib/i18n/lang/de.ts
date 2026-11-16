@@ -4,7 +4,6 @@ import {
 
 import {
   LANGUAGE_DIRECTION,
-  // LINE_SEPARATOR,
 } from '../types.ts';
 
 /** German (`de`) language configuration: LTR, with its quote and apostrophe rules. */
