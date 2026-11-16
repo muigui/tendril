@@ -12,7 +12,7 @@ import {
 import {
   getLangData,
   TextDocumentParser,
-} from '@muigui/tendril';
+} from '@muigui/tendril-retired';
 import {
   Files,
   readFileContents,
@@ -20,7 +20,7 @@ import {
 
 const LANG = `en`;
 
-suite(`@muigui/tendril > TextDocumentParser`, () => {
+suite(`@muigui/tendril-retired > TextDocumentParser`, () => {
   suite(`Lossless parsing and rendering`, () => {
     const parser = TextDocumentParser.new({
       aggregate: true,

@@ -8,14 +8,14 @@ import {
 
 import {
   ASCIIArtParser,
-} from '@muigui/tendril';
+} from '@muigui/tendril-retired';
 import {
   readFileContents,
 } from '@muigui/tendril-test-utils';
 
 const LANG = `en`;
 
-suite(`@muigui/tendril > ASCIIArtParser`, () => {
+suite(`@muigui/tendril-retired > ASCIIArtParser`, () => {
   suite(`Lossless parsing and rendering`, () => {
     const parser = ASCIIArtParser.new(LANG);
 

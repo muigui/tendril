@@ -1,0 +1,17 @@
+{
+  "extends": "@muigui/code-style/tsconfig.eslint.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "./"
+  },
+  "exclude": [
+    "./dist/**/*"
+  ],
+  "include": [
+    "./eslint.config.js",
+
+    "./src/**/*",
+
+    "./test/**/*"
+  ]
+}

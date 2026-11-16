@@ -25,7 +25,7 @@ import {
   LINE_SEPARATOR,
   renderASTFile,
   StreamingTextDocumentParser,
-} from '@muigui/tendril';
+} from '@muigui/tendril-retired';
 import {
   compareLineByLine,
   Files,
@@ -34,7 +34,7 @@ import {
 const isCI = env.CI === `true`;
 const LANG = `en`;
 
-suite(`@muigui/tendril > StreamingTextDocumentParser`, () => {
+suite(`@muigui/tendril-retired > StreamingTextDocumentParser`, () => {
   suite(`Lossless parsing and rendering`, () => {
     suite(`#parseURL`, () => {
       const parser = StreamingTextDocumentParser.new(LANG);
@@ -110,7 +110,10 @@ suite(`@muigui/tendril > StreamingTextDocumentParser`, () => {
 
             await setTimeout(1_000);
 
-            await compareLineByLine(file, renderedFileName);
+            await compareLineByLine({
+              original: file,
+              rendered: renderedFileName,
+            });
           });
         });
       });
@@ -149,7 +152,10 @@ suite(`@muigui/tendril > StreamingTextDocumentParser`, () => {
 
             await setTimeout(1_000);
 
-            await compareLineByLine(file, renderedFileName);
+            await compareLineByLine({
+              original: file,
+              rendered: renderedFileName,
+            });
           });
         });
       });
