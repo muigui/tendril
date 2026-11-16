@@ -30,17 +30,6 @@ export function fromAST(lang: Language, source: NodeArray) {
     }
 
     if (quotes > 0) {
-      // @ts-ignore: Ignore TS2339, for obvious reasons...
-      if (node.type === `block` && node?.category === `paragraph`) {
-        ast.add(TokenNode.new({
-          dir: lang.dir,
-          index: -1,
-          lang: lang.id,
-          type: TOKEN_NODE_TYPE.WHITESPACE,
-          value: lang.lineSeparator,
-        }));
-      }
-
       continue;
     }
 
