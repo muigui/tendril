@@ -16,12 +16,6 @@ import {
 //   being absorbed mid-word — notably a "C#" or a "#" inside another token.
 const HASHTAG_PATTERN = new RegExp(String.raw`(?<![${WORD_CHARS}#])#[${WORD_CHARS}]+`, `gu`);
 
-/**
- * Detects hashtags: a `#` followed by word characters, with a lookbehind that
- *   prevents matching mid-word (e.g. the `#` in `C#`).
- *
- * @see {@link AggregationDetector}
- */
 export default {
   category: TOKEN_AGGREGATION_NODE_CATEGORY.HASHTAG,
   priority: 300,

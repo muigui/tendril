@@ -2,11 +2,11 @@ import type {
   ASTContext,
 } from '../../context/index.ts';
 import {
-  type ASTNode,
   type ENUM_TOKEN_AGGREGATION_NODE_CATEGORY,
   type Nodes,
   type ValidNodes,
 
+  NodeArray,
   SPAN_NODE_TYPE,
   SpanNode,
   TOKEN_NODE_TYPE,
@@ -26,19 +26,7 @@ import type {
   PlacedAggregate,
 } from './types.ts';
 
-/**
- * Post-parse transform: walk the finished flat AST and replace contiguous runs
- *   of `TokenNode`s that form a URL / email / phone / etc. with a single
- *   `TokenAggregationNode` holding the original tokens.
- *
- * Windows span *inline* sentence markers (Tendril's sentence segmenter can split
- *   a value like `…/bar.html?enc=…` at the `?`); they are bounded only by hard
- *   breaks — newlines and block/unbound markers (paragraph, document, quote) —
- *   so an aggregation never crosses a line, paragraph, or quote boundary.
- *
- * Always re-indexes before returning, so callers don't need to.
- */
-export function aggregateTokens(ast: ASTNode, {
+export function aggregateTokens(ast: NodeArray<ValidNodes>, {
   categories,
   ctx,
 }: {
@@ -49,21 +37,18 @@ export function aggregateTokens(ast: ASTNode, {
     categories.includes(detector.category));
 
   if (detectors.length) {
-    const {
-      nodes,
-    } = ast;
-    const out: Nodes = [];
+    const out: NodeArray<ValidNodes> = new NodeArray();
 
     let i = 0;
 
-    while (i < nodes.length) {
+    while (i < ast.length) {
       // A window opens on a real token, then greedily absorbs following tokens
       //   and transparent (sentence) markers until a hard break.
-      if (isWindowToken(nodes[i])) {
+      if (isWindowToken(ast[i])) {
         const window: Nodes = [];
 
-        while (i < nodes.length && inWindow(nodes[i])) {
-          window.push(nodes[i]);
+        while (i < ast.length && inWindow(ast[i])) {
+          window.push(ast[i]);
 
           i++;
         }
@@ -71,16 +56,18 @@ export function aggregateTokens(ast: ASTNode, {
         out.push(...aggregateWindow(window, detectors, ctx));
       }
       else {
-        out.push(nodes[i]);
+        out.push(ast[i]);
 
         i++;
       }
     }
 
-    ast.nodes = out;
+    ctx.ast.load({
+      nodes: out,
+    });
   }
 
-  return ast.reindex();
+  return ctx.ast;
 }
 
 function aggregateWindow(window: Nodes, detectors: AggregationDetector[], ctx: ASTContext): Nodes {
@@ -236,7 +223,7 @@ function makeAggregate(tokens: TokenNode[], category: ENUM_TOKEN_AGGREGATION_NOD
   } = ctx.lang;
 
   return TokenAggregationNode.new({
-    $ctx: ctx,
+    // $ctx: ctx,
     category,
     dir,
     index: tokens[0]?.index,

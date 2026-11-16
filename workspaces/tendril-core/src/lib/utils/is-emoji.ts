@@ -13,15 +13,6 @@ export const REGEX_EMOJI_PRESENTATION = /\p{Emoji_Presentation}/gu;
 /** Matches tag sequences (e.g. subdivision flags). */
 export const REGEX_EMOJI_TAG = /\p{RGI_Emoji_Tag_Sequence}/gv;
 
-/**
- * Determines whether a string contains (or is) an emoji.
- *
- * Tests the value against the full family of emoji patterns — basic, extended
- *   pictographic, flag, keycap, modifier, presentation, and tag sequences.
- *
- * @param value - The string to test.
- * @returns `true` when any emoji pattern matches.
- */
 export function isEmoji(value: string) {
   return REGEX_EMOJI_BASIC.test(value)
     || REGEX_EMOJI_EXTENDED.test(value)

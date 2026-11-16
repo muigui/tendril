@@ -1,14 +1,15 @@
 import type {
-  ENUM_TOKEN_AGGREGATION_NODE_CATEGORY,
-} from '../node/index.ts';
+  Writable,
+} from 'node:stream';
 
-/**
- * Command actions the segment parsers emit to tell the {@link ASTContext} what to
- *   do with the current segment (append a token, open/close a quote, or do
- *   nothing).
- *
- * @enum {string}
- */
+import type {
+  ENUM_TOKEN_AGGREGATION_NODE_CATEGORY,
+  NodeSetNodesData,
+} from '../node/index.ts';
+import {
+  noop,
+} from '../utils/index.ts';
+
 export const SEGMENT_COMMAND_ACTIONS = {
   // Instruct the parser to create a new `LineNode`,
   //   using the current segment, and append it to the `ASTNode`.
@@ -40,11 +41,41 @@ export const SEGMENT_COMMAND_ACTIONS = {
 
 export type ENUM_SEGMENT_COMMAND_ACTIONS = typeof SEGMENT_COMMAND_ACTIONS[keyof typeof SEGMENT_COMMAND_ACTIONS];
 
-/**
- * The public, opt-in parse flag. `true` enables every category; an array
- *   enables only the listed categories; `false`/`undefined` disables aggregation.
- */
+export const SENTENCE_SEGMENT_STYLE = {
+  // Stick to the default segmenting as is done by the Intl.Segmenter.
+  // This means that a multiline sentence with line breaks will not be treated as a single sentence but as separate sentences.
+  DEFAULT: `default`,
+  // Ensure sentences are segmented based on actual sentence stops.
+  // Unlike the `default` version, this will treat a multiline sentence with line breaks as the single sentence it is.
+  // The drawback to this though, is that ASTS parsed using this option will not be a one-to-one rendering of the original document, since their newlines.
+  TRUE: `true`,
+};
+
+export type ENUM_SENTENCE_SEGMENT_STYLE = typeof SENTENCE_SEGMENT_STYLE[keyof typeof SENTENCE_SEGMENT_STYLE];
+
 export type AggregationConfig = boolean | ENUM_TOKEN_AGGREGATION_NODE_CATEGORY[];
 
-/** Raw input to a parser: a whole document string, or an array of paragraphs. */
-export type RawTextValue = string | string[];
+export interface ParserStateStreamingConfig {
+  onChunk: (err: Error | null, chunk: NodeSetNodesData) => void;
+}
+
+export const DEFAULT_STREAM_PARSER_STATE_CONFIG: ParserStateStreamingConfig = {
+  onChunk: noop,
+};
+
+export type PartialParserStateStreamingConfig = Partial<ParserStateStreamingConfig>;
+
+export interface BaseParseConfig extends PartialParserStateStreamingConfig {
+  output?: string | Writable;
+}
+
+export interface ParseFileConfig extends BaseParseConfig {
+  file: string;
+}
+
+export interface ParseURLConfig extends BaseParseConfig, RequestInit {
+  saveOriginalFile: string;
+  url: string;
+}
+
+export const TEMP_DIRECTORY_PREFIX = `tendril-stream-parser-output-dir-`;

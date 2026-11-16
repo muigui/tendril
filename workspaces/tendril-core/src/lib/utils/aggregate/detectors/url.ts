@@ -13,13 +13,6 @@ import type {
 //   specific, so it comes from the language (`lang.trailingPunctuation`).
 const URL_PATTERN = /\b(?:https?|ftp):\/\/\S+/giu;
 
-/**
- * Detects URLs that carry an explicit scheme (`http`, `https`, or `ftp`),
- *   trimming trailing sentence punctuation (e.g. a closing `)` or full stop)
- *   that is almost never part of the link.
- *
- * @see {@link AggregationDetector}
- */
 export default {
   category: TOKEN_AGGREGATION_NODE_CATEGORY.URL,
   priority: 0,

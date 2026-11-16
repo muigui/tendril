@@ -1,5 +1,5 @@
 export type * from './aggregate/types.ts';
 
-export type {
-  NodeClass,
-} from './get-nth-instanceof-class.ts';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type TempStateData = Record<string, any>;
+export type TempStateDataValue = TempStateData[string];

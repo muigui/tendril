@@ -38,18 +38,18 @@
     "lint:fix:all": "npm run lint -- --fix",
     "postbuild": "rm -rf tsconfig.tsbuildinfo",
     "pretest": "rm -rf coverage && mkdir -p coverage",
-    "pretest:agg": "rm -rf coverage && mkdir -p coverage",
-    "test": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout {src,test}/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}",
-    "test:agg": "node --experimental-strip-types --experimental-test-coverage --test --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout test/unit/aggregate.test.ts"
+    "pretest:debug": "rm -rf coverage && mkdir -p coverage",
+    "test": "node --experimental-strip-types --experimental-test-coverage --test --test-force-exit --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout {src,test}/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}",
+    "test:debug": "NODE_DEBUG=tendril:parse*,tendril:tes*,tendril:utils:render-ast-file node --experimental-strip-types --experimental-test-coverage --test --test-force-exit --test-reporter=lcov --test-reporter=spec --test-reporter-destination=coverage/lcov.info --test-reporter-destination=stdout {src,test}/**/*.test.{cjs,cjsx,cts,ctsx,js,jsx,mjs,mjsx,mts,mtsx,ts,tsx}"
   },
   "dependencies": {
     "@hapi/address": "^5.1.1",
-    "libphonenumber-js": "^1.13.12"
+    "libphonenumber-js": "^1.13.16"
   },
   "devDependencies": {
     "@muigui/code-style": "^1.0.3",
-    "@muigui/tendril-test-fixtures": "1.x.x",
-    "@muigui/tendril-test-utils": "1.x.x"
+    "@muigui/tendril-test-fixtures": "^1.0.0",
+    "@muigui/tendril-test-utils": "^1.0.2"
   },
   "engines": {
     "node": ">=24.13.1",
