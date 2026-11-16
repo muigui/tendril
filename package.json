@@ -23,6 +23,7 @@
     "preclean": "rm -rf node_modules",
     "prews:clean:install": "npm run clean",
     "test": "npm run test --if-present --workspaces",
+    "test:debug": "npm run test:debug --if-present --workspaces",
     "ws:ci": "npm run ws:clean-install",
     "ws:clean-install": "npm ci --include-workspace-root --workspaces",
     "ws:clean:install": "npm run ws:install",
@@ -32,13 +33,13 @@
   "dependencies": {
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.2",
-    "@commitlint/config-conventional": "^21.2.2",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@muigui/code-style": "^1.0.3",
-    "@types/node": "^26.4.1",
+    "@types/node": "^26.6.3",
     "@types/shelljs": "^0.10.0",
     "husky": "^9.1.7",
-    "lint-staged": "^17.4.1",
+    "lint-staged": "^17.6.0",
     "npm-check-updates": "^23.1.0",
     "shelljs": "^0.10.0",
     "typescript": "^6.0.3"
