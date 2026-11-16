@@ -2,16 +2,14 @@ import {
   type Language,
   type NodeArray,
   type RawTextValue,
-  type ValidNodes,
 
-  getLangData,
   SpanNode,
   StringParser,
   TOKEN_NODE_TYPE,
   TokenNode,
 } from '@muigui/tendril';
 
-export function fromAST(lang: Language, source: NodeArray<ValidNodes>) {
+export function fromAST(lang: Language, source: NodeArray) {
   // Shallow clone, as we want to conditionally include nodes, based on whether they are in a quote.
   const ast = source.clone(true);
 

@@ -298,7 +298,6 @@ export class StreamParser extends ContextParser<ASTContext> {
 
   async parse(text: RawTextValue) {
     const {
-      lang,
       originalLineSeparator,
       segmenter,
     } = this;
