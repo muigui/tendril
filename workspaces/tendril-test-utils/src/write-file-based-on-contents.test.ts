@@ -27,17 +27,17 @@ import {
 const LANG = `en`;
 const written: string[] = [];
 
-after(() => {
-  written.forEach((fileName) => {
-    const path = getFixturePath(`${LANG}/${fileName}`);
-
-    if (existsSync(path)) {
-      unlinkSync(path);
-    }
-  });
-});
-
 suite(`@muigui/tendril-test-utils > writeFileBasedOnContents`, () => {
+  after(() => {
+    written.forEach((fileName) => {
+      const path = getFixturePath(`${LANG}/${fileName}`);
+
+      if (existsSync(path)) {
+        unlinkSync(path);
+      }
+    });
+  });
+
   test(`writes string data as-is, with no trailing newline added`, () => {
     const fileName = `__write-file-based-on-contents.test__.string.txt`;
 

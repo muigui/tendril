@@ -6,13 +6,14 @@ import {
 } from 'node:path';
 
 import type {
-  ASTNode,
+  NodeArray,
+  ValidNodes,
 } from '@muigui/tendril';
 import {
   getFixturePath,
 } from '@muigui/tendril-test-fixtures';
 
-export function writeFileBasedOnContents(fileName: string, data: ASTNode | object | string, lang = `en`) {
+export function writeFileBasedOnContents(fileName: string, data: NodeArray<ValidNodes> | object | string, lang = `en`) {
   // @ts-ignore: Ignore TS2339. I'm not going out of my way to make TS happy here. Sorry...
   const isJSON = typeof data !== `string` && typeof data?.toJSON === `function`;
   const content = isJSON
